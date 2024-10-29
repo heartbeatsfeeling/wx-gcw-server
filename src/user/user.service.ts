@@ -1,18 +1,18 @@
 // user.service.ts
-import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '../database/database.service';
+import { Injectable } from '@nestjs/common'
+import { DatabaseService } from '../database/database.service'
 
 @Injectable()
 export class UserService {
-  constructor(private readonly databaseService: DatabaseService) {}
+  constructor (private readonly databaseService: DatabaseService) {}
 
-  async findAllUsers() {
-    const sql = 'SELECT * FROM users';
-    return await this.databaseService.query(sql);
+  async findAllUsers () {
+    const sql = 'SELECT * FROM users'
+    return await this.databaseService.query(sql)
   }
 
-  async createUser(name: string, age: number) {
-    const sql = 'INSERT INTO users (name, age) VALUES (?, ?)';
-    return await this.databaseService.query(sql, [name, age]);
+  async createUser (name: string, age: number) {
+    const sql = 'INSERT INTO users (name, age) VALUES (?, ?)'
+    return await this.databaseService.query(sql, [name, age])
   }
 }

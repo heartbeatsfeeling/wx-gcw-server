@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import * as mysql from 'mysql2/promise';
+import { Injectable } from '@nestjs/common'
+import * as mysql from 'mysql2/promise'
 
 @Injectable()
 export class DatabaseService {
-  private pool: mysql.Pool;
+  private pool: mysql.Pool
 
-  constructor() {
+  constructor () {
     this.pool = mysql.createPool({
       host: 'localhost',
       port: 3306,
@@ -14,12 +14,12 @@ export class DatabaseService {
       database: 'gcw',
       waitForConnections: true,
       connectionLimit: 10,
-      queueLimit: 0,
-    });
+      queueLimit: 0
+    })
   }
 
-  async query(sql: string, params?: any[]) {
-    const [results] = await this.pool.execute(sql, params);
-    return results;
+  async query (sql: string, params?: any[]) {
+    const [results] = await this.pool.execute(sql, params)
+    return results
   }
 }
