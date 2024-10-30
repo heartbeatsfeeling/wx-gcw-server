@@ -1,8 +1,13 @@
 import { Module } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { UserModule } from './user/user.module'
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { UsersModule } from './users/users.module'
 import { ConfigModule } from '@nestjs/config'
+import { ResponseFormatInterceptor } from './common/interceptors/response-format.interceptor'
+import { ExceptionInterceptor } from './common/interceptors/exception.interceptor'
+import { HttpExceptionFilter } from './common/filters/http-exception.filter'
+import { AuthModule } from './auth/auth.module'
 
 @Module({
   imports: [
@@ -10,9 +15,22 @@ import { ConfigModule } from '@nestjs/config'
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`
     }),
-    UserModule
+    UsersModule,
+    AuthModule
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseFormatInterceptor
+    }, {
+      provide: APP_INTERCEPTOR,
+      useClass: ExceptionInterceptor
+    }, {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter
+    }
+  ]
 })
 export class AppModule {}
