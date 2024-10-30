@@ -5,14 +5,14 @@ import { UsersService } from '..//users/users.service'
 export class AuthService {
   constructor (private usersService: UsersService) {}
 
-  async signIn (username: string, pass: string): Promise<any> {
+  async signIn (): Promise<any> {
     const user = await this.usersService.findAllUsers()
     if (!user) {
       throw new UnauthorizedException()
     }
-    const { openId } = user
+    // const { openId } = user
     // TODO: 生成一个 JWT，并在这里返回
     // 而不是返回一个用户对象
-    return openId
+    return user
   }
 }
