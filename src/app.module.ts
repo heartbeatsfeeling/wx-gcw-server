@@ -8,6 +8,7 @@ import { ResponseFormatInterceptor } from './common/interceptors/response-format
 import { ExceptionInterceptor } from './common/interceptors/exception.interceptor'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { AuthModule } from './auth/auth.module'
+import { AdminModule } from './admin/admin.module'
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AuthModule } from './auth/auth.module'
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`
     }),
+    AdminModule,
     UsersModule,
     AuthModule
   ],
