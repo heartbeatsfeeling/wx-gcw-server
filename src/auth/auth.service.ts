@@ -3,12 +3,16 @@ import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { JwtService } from '@nestjs/jwt'
 import { JWT } from 'src/enums'
+import { DatabaseService } from 'src/database/database.service'
+import { UsersService } from 'src/users/users.service'
 
 @Injectable()
 export class AuthService {
   constructor (
     private readonly httpService: HttpService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private databaseService: DatabaseService,
+    private usersService: UsersService
   ) {}
 
   async openid2Token (openid: string) {
@@ -26,6 +30,21 @@ export class AuthService {
       return payload.openid
     } catch {
       return null
+    }
+  }
+
+  async adminLogin (userName: string, password: string) {
+    const user = await this.usersService.findAdminUser(userName, password)
+    if (user?.password !== password) {
+      return {
+        status: false,
+        message: '用户不存在或密码错误'
+      }
+    }
+    const payload = { userName: user.name, userId: user.id }
+    return {
+      status: true,
+      access_token: await this.jwtService.signAsync(payload)
     }
   }
 

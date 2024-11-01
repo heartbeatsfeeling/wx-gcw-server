@@ -5,6 +5,21 @@ import { DatabaseService } from '../database/database.service'
 export class UsersService {
   constructor (private readonly databaseService: DatabaseService) {}
 
+  async findAdminUser (userName: string, password: string): Promise<null | {
+    name: string
+    id: number
+    password: string
+  }> {
+    const sql = 'SELECT * FROM `admin` WHERE `name` = ? AND `password` = ?'
+    const user = await this.databaseService.query<{ id: number, name: string, password: string }[]>(sql, [userName, password])
+    return user?.[0]
+  }
+
+  async findAllUser (): Promise<any[]> {
+    const sql = 'SELECT * FROM `users`'
+    return await this.databaseService.query(sql)
+  }
+
   async findUser (openid: string): Promise<any[]> {
     const sql = 'SELECT * FROM `users` WHERE `user_id` = ?'
     return await this.databaseService.query(sql, [openid]) as any[]
