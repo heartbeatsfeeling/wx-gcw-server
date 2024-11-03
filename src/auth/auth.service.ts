@@ -3,7 +3,6 @@ import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { JwtService } from '@nestjs/jwt'
 import { JWT } from 'src/enums'
-import { DatabaseService } from 'src/database/database.service'
 import { UsersService } from 'src/users/users.service'
 
 @Injectable()
@@ -11,7 +10,6 @@ export class AuthService {
   constructor (
     private readonly httpService: HttpService,
     private jwtService: JwtService,
-    private databaseService: DatabaseService,
     private usersService: UsersService
   ) {}
 

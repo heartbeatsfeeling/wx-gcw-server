@@ -1,6 +1,6 @@
 
 @baseUrl = http://127.0.0.1:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwidXNlcklkIjoxLCJpYXQiOjE3MzA0NDIxMzYsImV4cCI6MTczMDUyODUzNn0.DYC8rW-m7IQRqbOI9_FqWUm6seKZS5mdKgjyduVlEiY
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwidXNlcklkIjoxLCJpYXQiOjE3MzA0NjcwMDIsImV4cCI6MTczMDU1MzQwMn0.JF7Q3sCbATplmokWXFTZmRq6O3nFfxOp9E1BCnA__QQ
 
 ###  登录
 POST {{baseUrl}}/api/admin/login HTTP/1.1
