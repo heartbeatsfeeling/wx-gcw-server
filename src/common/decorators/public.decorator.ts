@@ -1,4 +1,4 @@
 import { SetMetadata } from '@nestjs/common'
-import { StaticKey } from 'src/enums'
+import { isPublicKey } from '../config'
 
-export const Public = () => SetMetadata(StaticKey.public, true)
+export const Public = () => SetMetadata(isPublicKey, true)

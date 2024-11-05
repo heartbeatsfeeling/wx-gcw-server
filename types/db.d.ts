@@ -1,11 +1,11 @@
-export interface user {
+export interface User {
   id: number
   name: string
   createTime: number
   lastLoginTime: number
 }
 
-export interface video {
+export interface Video {
   id: number
   title: string
   description: string
@@ -14,13 +14,13 @@ export interface video {
   creatTime: number
 }
 
-export interface adminUser {
+export interface AdminUser {
   id: number
   name: string
   password: string
 }
 
-export interface like {
+export interface Like {
   id: number
   userId: number
   videoId: number

@@ -5,8 +5,8 @@ import { UsersModule } from '../users/users.module'
 import { HttpModule } from '@nestjs/axios'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule } from '@nestjs/config'
-import { JWT } from 'src/enums'
 import { DatabaseModule } from 'src/database/database.module'
+import { jwtConfig } from 'src/common/config'
 @Module({
   imports: [
     UsersModule,
@@ -15,8 +15,8 @@ import { DatabaseModule } from 'src/database/database.module'
     DatabaseModule,
     JwtModule.register({
       global: true,
-      secret: JWT.secret,
-      signOptions: { expiresIn: JWT.expiration }
+      secret: jwtConfig.secret,
+      signOptions: { expiresIn: jwtConfig.expiresIn }
     })],
   providers: [AuthService],
   exports: [AuthService],

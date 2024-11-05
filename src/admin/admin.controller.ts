@@ -4,6 +4,7 @@ import { AuthGuard } from 'src/auth/auth.guard'
 import { Public } from 'src/common/decorators/public.decorator'
 import { AdminService } from './admin.service'
 import { UsersService } from 'src/users/users.service'
+import { AdminLoginDto } from 'src/common/dto/admin.dto'
 
 @UseGuards(AuthGuard)
 @Controller('admin')
@@ -17,7 +18,7 @@ export class AdminController {
   @Post('login')
   @Public()
   @HttpCode(200)
-  async login (@Body() { userName, password }: { userName: string, password: string }) {
+  async login (@Body() { userName, password }: AdminLoginDto) {
     const user = await this.authService.adminLogin(userName, password)
     if (user.status) {
       return user.access_token

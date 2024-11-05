@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { JwtService } from '@nestjs/jwt'
-import { JWT } from 'src/enums'
 import { UsersService } from 'src/users/users.service'
+import { jwtConfig } from 'src/common/config'
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
     try {
       const payload = await this.jwtService.verifyAsync(
         token,
-        { secret: JWT.secret }
+        { secret: jwtConfig.secret }
       )
       return payload.openid
     } catch {

@@ -5,7 +5,8 @@ import {
   CallHandler,
   HttpException,
   HttpStatus,
-  Logger
+  Logger,
+  BadRequestException
 } from '@nestjs/common'
 import { Observable } from 'rxjs'
 import { catchError } from 'rxjs/operators'
@@ -19,15 +20,25 @@ export class ExceptionInterceptor implements NestInterceptor {
       catchError((error) => {
         let status = HttpStatus.INTERNAL_SERVER_ERROR
         let message: any = 'Internal server error'
-
         // 判断是否为 HttpException
         if (error instanceof HttpException) {
           status = error.getStatus()
           message = error.getResponse()
+          // 判断是否为DTO错误
+          if (error instanceof BadRequestException) {
+            const response = error.getResponse()
+            if (typeof response === 'object' && ('message' in response)) {
+              if (Array.isArray(response.message)) {
+                message = response.message.join(' and ')
+              } else {
+                message = response.message
+              }
+            }
+          }
         } else {
           message = error.message || 'An unexpected error occurred'
         }
-        this.logger.error(`Status: ${status}, Error Message: ${error.message}`, error.stack)
+        this.logger.error(`Status: ${status}, Error Message: ${message}`, error.stack)
         // 返回自定义的错误响应结构
         throw new HttpException({
           status: false,

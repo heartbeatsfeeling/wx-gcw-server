@@ -1,24 +1,24 @@
 import { Injectable } from '@nestjs/common'
-import { AuthService } from 'src/auth/auth.service'
+import { dateFormat } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
+import { Video } from 'types/db'
 
 @Injectable()
 export class AdminService {
   constructor (
-    private readonly authService: AuthService,
     private readonly databaseService: DatabaseService
   ) {
   }
 
   async getVideoList () {
-    const sql = 'SELECT * FROM `videos`'
-    const list = await this.databaseService.query(sql)
+    const sql = 'SELECT *, DATE_FORMAT(`create_time`, ?) AS `create_time` FROM `videos`'
+    const list = await this.databaseService.query<Video[]>(sql, [dateFormat.format])
     return list
   }
 
   async getVideoDetail (id: number) {
-    const sql = 'SELECT `id`, `title`, `description`, `duration`, `path`, DATE_FORMAT(`create_time`, "%Y-%m-%d %H:%i:%s") as create_time  FROM `videos` WHERE `id` = ?'
-    const detail = await this.databaseService.query(sql, [id])
+    const sql = 'SELECT * , DATE_FORMAT(`create_time`, ?) as create_time  FROM `videos` WHERE `id` = ?'
+    const detail = await this.databaseService.query<Video>(sql, [dateFormat.format, id])
     return detail?.[0] ?? null
   }
 }

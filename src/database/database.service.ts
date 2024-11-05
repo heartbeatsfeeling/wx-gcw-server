@@ -18,7 +18,7 @@ export class DatabaseService {
     })
   }
 
-  async query<T> (sql: string, params?: any[]) {
+  async query<T = any> (sql: string, params?: any[]) {
     const [results] = await this.pool.execute(sql, params)
     return results as T
   }
