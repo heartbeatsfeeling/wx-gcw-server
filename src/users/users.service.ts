@@ -8,6 +8,16 @@ import { dateFormat } from 'src/common/config'
 export class UsersService {
   constructor (private readonly databaseService: DatabaseService) {}
 
+  async getAdminUserInfo (userName: string): Promise<null | {
+    name: string
+    id: number
+    password: string
+  }> {
+    const sql = 'SELECT * FROM `adminUsers` WHERE `name` = ?'
+    const user = await this.databaseService.query<{ id: number, name: string, password: string }[]>(sql, [userName])
+    return user?.[0]
+  }
+
   async findAdminUser (userName: string, password: string): Promise<null | {
     name: string
     id: number

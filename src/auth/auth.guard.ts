@@ -24,7 +24,7 @@ export class AuthGuard implements CanActivate {
       return true
     }
     const request = context.switchToHttp().getRequest()
-    const token = request.headers?.token
+    const token = request.cookies.token
     if (!token) {
       throw new UnauthorizedException()
     }

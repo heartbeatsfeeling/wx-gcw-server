@@ -1,6 +1,6 @@
 
 @baseUrl = http://127.0.0.1:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwidXNlcklkIjoxLCJpYXQiOjE3MzA0NjcwMDIsImV4cCI6MTczMDU1MzQwMn0.JF7Q3sCbATplmokWXFTZmRq6O3nFfxOp9E1BCnA__QQ
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwidXNlcklkIjoxLCJpYXQiOjE3MzA5NTczMTIsImV4cCI6MTczMTA0MzcxMn0.GCX_zra2o4T22b3kuDPOXEgwayDLSjaqy0rzwG4y9dA
 
 ###  登录
 POST {{baseUrl}}/api/admin/login HTTP/1.1
@@ -11,15 +11,20 @@ content-type: application/json
     "password": "123456"
 }
 
+### 获取admin 用户信息
+GET {{baseUrl}}/api/admin/userInfo HTTP/1.1
+Cookie: token={{token}}
+
+
 ### 获取视频列表
 GET {{baseUrl}}/api/admin/videos HTTP/1.1
-token: {{token}}
+Cookie: token={{token}}
 
 
 ###  视频详细
 GET {{baseUrl}}/api/admin/videos/1 HTTP/1.1
-token: {{token}}
+Cookie: token={{token}}
 
 ###  所有用户
 GET {{baseUrl}}/api/admin/users HTTP/1.1
-token: {{token}}
+Cookie: token={{token}}

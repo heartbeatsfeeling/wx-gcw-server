@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs'
 import { JwtService } from '@nestjs/jwt'
 import { UsersService } from 'src/users/users.service'
 import { jwtConfig } from 'src/common/config'
+import { AdminUserPayLoad, wxUserPayLoad } from 'types/payload'
 
 @Injectable()
 export class AuthService {
@@ -13,20 +14,45 @@ export class AuthService {
     private usersService: UsersService
   ) {}
 
+  async jwtVerify<T = any> (token: string): Promise<T | null> {
+    if (token) {
+      try {
+        const payload = await this.jwtService.verifyAsync(
+          token,
+          { secret: jwtConfig.secret }
+        )
+        return payload
+      } catch {
+        return null
+      }
+    } else {
+      return null
+    }
+  }
+
   async openid2Token (openid: string) {
     return await this.jwtService.signAsync({
       openid
     })
   }
 
+  async getAdminJWTPayload (token: string): Promise<AdminUserPayLoad> {
+    const payload = await this.jwtVerify<AdminUserPayLoad>(token)
+    if (payload) {
+      return {
+        userName: payload.userName,
+        userId: payload.userId
+      }
+    } else {
+      return null
+    }
+  }
+
   async token2openid (token: string): Promise<string | null> {
-    try {
-      const payload = await this.jwtService.verifyAsync(
-        token,
-        { secret: jwtConfig.secret }
-      )
+    const payload = await this.jwtVerify<wxUserPayLoad>(token)
+    if (payload) {
       return payload.openid
-    } catch {
+    } else {
       return null
     }
   }
