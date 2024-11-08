@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
 import { AuthService } from 'src/auth/auth.service'
 import { AuthGuard } from 'src/auth/auth.guard'
 import { Public } from 'src/common/decorators/public.decorator'
@@ -6,6 +6,7 @@ import { AdminService } from './admin.service'
 import { UsersService } from 'src/users/users.service'
 import { AdminLoginDto } from 'src/common/dto/admin.dto'
 import { CustomRequest } from 'types/request'
+import { Response } from 'express'
 
 @UseGuards(AuthGuard)
 @Controller('admin')
@@ -19,28 +20,36 @@ export class AdminController {
   @Post('login')
   @Public()
   @HttpCode(200)
-  async login (@Body() { userName, password }: AdminLoginDto) {
+  async login (
+    @Body() { userName, password }: AdminLoginDto,
+    @Res({ passthrough: true }) response: Response
+  ) {
     const user = await this.authService.adminLogin(userName, password)
     if (user.status) {
-      return user.access_token
+      response.cookie('token', user.access_token, {
+        maxAge: 24 * 60 * 60 * 1000
+      })
+      return true
     } else {
       throw new HttpException(user.message, HttpStatus.OK)
     }
   }
 
+  @Public()
   @Get('userInfo')
   async getAdminUserInfo (@Req() request: CustomRequest) {
+    const message = '获取用户信息失败'
     try {
       const payload = await this.authService.getAdminJWTPayload(request.cookies.token)
       if (payload) {
         return payload
       } else {
-        throw new UnauthorizedException('unLogin')
+        throw new HttpException(message, HttpStatus.OK)
       }
     } catch {
 
     }
-    throw new UnauthorizedException('unLogin')
+    throw new HttpException(message, HttpStatus.OK)
   }
 
   @Get('videos')
