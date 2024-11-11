@@ -35,6 +35,15 @@ export class AdminController {
     }
   }
 
+  @Get('logout')
+  @HttpCode(200)
+  async logout (
+    @Res({ passthrough: true }) response: Response
+  ) {
+    response.clearCookie('token')
+    return true
+  }
+
   @Public()
   @Get('userInfo')
   async getAdminUserInfo (@Req() request: CustomRequest) {
