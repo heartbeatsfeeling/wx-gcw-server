@@ -30,7 +30,13 @@ export class UsersService {
 
   async findAllUser () {
     const sql = 'SELECT * , DATE_FORMAT(`create_time`, ?) as create_time, DATE_FORMAT(`last_login_time`, ?) as last_login_time FROM `users`'
-    return await this.databaseService.query<User[]>(sql, [dateFormat.format, dateFormat.format])
+    const list = await this.databaseService.query<User[]>(sql, [dateFormat.format, dateFormat.format])
+    return list.map(item => ({
+      id: item.id,
+      name: item.name,
+      createTime: item.create_time,
+      lastLoginTime: item.last_login_time
+    }))
   }
 
   async findUser (openid: string) {

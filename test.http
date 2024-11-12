@@ -17,14 +17,11 @@ Cookie: token={{token}}
 
 
 ### 获取视频列表
-GET {{baseUrl}}/api/admin/videos HTTP/1.1
+GET {{baseUrl}}/api/videos HTTP/1.1
 Cookie: token={{token}}
 
 
 ###  视频详细
-GET {{baseUrl}}/api/admin/videos/1 HTTP/1.1
+GET {{baseUrl}}/api/videos/1 HTTP/1.1
 Cookie: token={{token}}
 
-###  所有用户
-GET {{baseUrl}}/api/admin/users HTTP/1.1
-Cookie: token={{token}}

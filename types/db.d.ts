@@ -1,8 +1,8 @@
 export interface User {
   id: number
   name: string
-  createTime: number
-  lastLoginTime: number
+  create_time: number
+  last_login_time: number
 }
 
 export interface Video {

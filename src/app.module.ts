@@ -9,6 +9,7 @@ import { ExceptionInterceptor } from './common/interceptors/exception.intercepto
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { AuthModule } from './auth/auth.module'
 import { AdminModule } from './admin/admin.module'
+import { VideosModule } from './videos/videos.module'
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { AdminModule } from './admin/admin.module'
     }),
     AdminModule,
     UsersModule,
-    AuthModule
+    AuthModule,
+    VideosModule
   ],
   controllers: [AppController],
   providers: [

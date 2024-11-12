@@ -1,17 +1,12 @@
-import { Controller, Post, Body } from '@nestjs/common'
+import { Controller, Get } from '@nestjs/common'
 import { UsersService } from './users.service'
 
-@Controller('user')
+@Controller('users')
 export class UserController {
   constructor (private readonly usersService: UsersService) {}
 
-  @Post()
-  async updateUser (
-    @Body('openid') openid: string
-  ) {
-    console.log(
-      await this.usersService.findUser(openid)
-    )
-    return 1
+  @Get()
+  async getUsers () {
+    return await this.usersService.findAllUser()
   }
 }
