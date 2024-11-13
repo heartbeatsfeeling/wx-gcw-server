@@ -19,11 +19,6 @@ export class AppController {
     @Body('sql') sql: string,
     @Body('params') params = []
   ) {
-    console.log(sql)
-    try {
-      return await this.databaseService.query(sql, params)
-    } catch {
-      return false
-    }
+    return this.databaseService.query(sql, params)
   }
 }
