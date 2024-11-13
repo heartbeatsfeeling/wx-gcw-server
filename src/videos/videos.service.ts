@@ -10,14 +10,53 @@ export class VideosService {
   ) {}
 
   async getVideoList () {
-    const sql = 'SELECT *, DATE_FORMAT(`create_time`, ?) AS `create_time` FROM `videos`'
-    const list = await this.databaseService.query<Video[]>(sql, [dateFormat.format])
+    const sql = `
+      SELECT 
+        videos.id,
+        videos.path,
+        videos.title,
+        videos.description,
+        videos.duration,
+        videos.cover_image as coverImage,
+        DATE_FORMAT(MAX(likes.liked_at), ?) AS likedAtTime,
+        DATE_FORMAT(videos.create_time, ?) AS createTime,
+        COUNT(likes.id) AS likeCount,
+        COUNT(video_play_logs.id) AS viewCount
+      FROM 
+        videos
+      LEFT JOIN 
+        likes ON likes.video_id = videos.id
+      LEFT JOIN
+        video_play_logs ON video_play_logs.video_id = videos.id
+      GROUP BY
+        videos.id
+    `
+    const list = await this.databaseService.query<Video[]>(sql, [dateFormat.format, dateFormat.format])
     return list
   }
 
   async getVideoDetail (id: number) {
-    const sql = 'SELECT * , DATE_FORMAT(`create_time`, ?) as create_time  FROM `videos` WHERE `id` = ?'
-    const detail = await this.databaseService.query<Video>(sql, [dateFormat.format, id])
+    const sql = `
+      SELECT 
+        videos.id,
+        videos.path,
+        videos.title,
+        videos.description,
+        videos.duration,
+        videos.cover_image as coverImage,
+        DATE_FORMAT(MAX(likes.liked_at), ?) AS likedAtTime,
+        DATE_FORMAT(videos.create_time, ?) AS createTime,
+        COUNT(likes.id) AS likeCount
+      FROM 
+        videos
+      LEFT JOIN 
+        likes ON likes.video_id = videos.id
+      WHERE
+        videos.id = ?
+      GROUP BY
+        videos.id
+    `
+    const detail = await this.databaseService.query<Video>(sql, [dateFormat.format, dateFormat.format, id])
     return detail?.[0] ?? null
   }
 }

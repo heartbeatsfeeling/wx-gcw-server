@@ -1,17 +1,21 @@
 export interface User {
   id: number
   name: string
-  create_time: number
-  last_login_time: number
+  createTime: string
+  lastLoginTime: string
 }
 
 export interface Video {
   id: number
+  path: string,
   title: string
   description: string
-  path: string
   duration: number
-  creatTime: number
+  likedAtTime: string
+  createTime: string
+  likeCount: number
+  coverImage: string
+  viewCount: number
 }
 
 export interface AdminUser {
