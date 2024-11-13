@@ -2,8 +2,7 @@ export interface AdminUserPayLoad {
     userName: string
     userId: number
   }
-  
-  export interface wxUserPayLoad {
+
+export interface wxUserPayLoad {
     openid: string
   }
-  

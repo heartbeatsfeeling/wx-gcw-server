@@ -1,6 +1,7 @@
 export interface User {
   id: number
   name: string
+  openid: string
   createTime: string
   lastLoginTime: string
 }
@@ -28,4 +29,12 @@ export interface Like {
   id: number
   userId: number
   videoId: number
+}
+
+export interface Log {
+  id: number
+  openid: string
+  videTitle: string
+  videoId: number
+  createTime: string
 }

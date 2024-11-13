@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common'
 import { AppService } from './app.service'
 import { DatabaseService } from './database/database.service'
 
@@ -15,6 +15,7 @@ export class AppController {
   }
 
   @Post('updateDb')
+  @HttpCode(200)
   async updateDb (
     @Body('sql') sql: string,
     @Body('params') params = []

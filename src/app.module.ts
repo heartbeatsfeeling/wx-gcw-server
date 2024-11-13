@@ -11,6 +11,8 @@ import { AuthModule } from './auth/auth.module'
 import { AdminModule } from './admin/admin.module'
 import { VideosModule } from './videos/videos.module'
 import { DatabaseModule } from './database/database.module'
+import { LikesModule } from './likes/likes.module'
+import { LogsModule } from './logs/logs.module'
 
 @Module({
   imports: [
@@ -22,7 +24,9 @@ import { DatabaseModule } from './database/database.module'
     UsersModule,
     AuthModule,
     VideosModule,
-    DatabaseModule
+    DatabaseModule,
+    LikesModule,
+    LogsModule
   ],
   controllers: [AppController],
   providers: [

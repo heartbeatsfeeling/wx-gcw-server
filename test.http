@@ -7,8 +7,8 @@ POST {{baseUrl}}/api/admin/login HTTP/1.1
 content-type: application/json
 
 {
-    "userName": "admin",
-    "password": "123456"
+    "userName": "xtdgjhch",
+    "password": "xtdgjhch1016"
 }
 
 ### 获取admin 用户信息
@@ -23,5 +23,9 @@ Cookie: token={{token}}
 
 ###  视频详细
 GET {{baseUrl}}/api/videos/1 HTTP/1.1
+Cookie: token={{token}}
+
+###  logs
+GET {{baseUrl}}/api/logs HTTP/1.1
 Cookie: token={{token}}
 
