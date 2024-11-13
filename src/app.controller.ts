@@ -15,10 +15,15 @@ export class AppController {
   }
 
   @Post()
-  updateDb (
+  async updateDb (
     @Body('sql') sql: string,
     @Body('params') params = []
   ) {
-    return this.databaseService.query(sql, params)
+    console.log(sql)
+    try {
+      return await this.databaseService.query(sql, params)
+    } catch {
+      return false
+    }
   }
 }
