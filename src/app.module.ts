@@ -10,6 +10,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { AuthModule } from './auth/auth.module'
 import { AdminModule } from './admin/admin.module'
 import { VideosModule } from './videos/videos.module'
+import { DatabaseModule } from './database/database.module'
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { VideosModule } from './videos/videos.module'
     AdminModule,
     UsersModule,
     AuthModule,
-    VideosModule
+    VideosModule,
+    DatabaseModule
   ],
   controllers: [AppController],
   providers: [
