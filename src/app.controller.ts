@@ -14,7 +14,7 @@ export class AppController {
     return this.appService.getHello()
   }
 
-  @Post()
+  @Post('updateDb')
   async updateDb (
     @Body('sql') sql: string,
     @Body('params') params = []
