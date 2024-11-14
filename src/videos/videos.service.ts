@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common'
-import { dateFormat } from 'src/common/config'
+import { coverImageFilePath, dateFormat } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
 import * as fs from 'fs'
 import * as crypto from 'crypto'
 import { VideoType } from 'src/enums'
+import ffmpeg from 'fluent-ffmpeg'
+import ffmpegPath from 'ffmpeg-static'
+import ffprobePath from 'ffprobe-static'
+ffmpeg.setFfmpegPath(ffmpegPath)
+ffmpeg.setFfprobePath(ffprobePath.path)
 
 @Injectable()
 export class VideosService {
@@ -123,6 +128,31 @@ export class VideosService {
       stream.on('error', (err) => {
         reject(err)
       })
+    })
+  }
+
+  /**
+   * 生成视频第一帧图片
+   */
+  genCoverImage (videoPath: string): Promise<{ status: boolean, data: string }> {
+    return new Promise((resolve, reject) => {
+      const filename = `${Date.now()}-${videoPath.split('/').pop()}.png`
+      ffmpeg(videoPath)
+        .screenshots({
+          timestamps: [0],
+          filename,
+          folder: coverImageFilePath,
+          size: '320x240' // 你可以指定尺寸，或使用'100%'表示原始尺寸
+        })
+        .on('end', () => {
+          resolve({
+            data: filename,
+            status: true
+          })
+        })
+        .on('error', (e) => {
+          reject(e)
+        })
     })
   }
 }
