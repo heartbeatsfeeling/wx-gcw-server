@@ -5,7 +5,7 @@ export const jwtConfig = {
 /**
  * 上传目录
  */
-export const uploadFilePath = './uploads/videos'
+export const uploadFilePath = '/home/ubuntu/uploads/gcw-videos'
 /**
  * 上传文件最大限制200m
  */
