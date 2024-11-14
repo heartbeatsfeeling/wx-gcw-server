@@ -142,7 +142,7 @@ export class VideosService {
           timestamps: [0],
           filename,
           folder: coverImageFilePath,
-          size: '320x240' // 你可以指定尺寸，或使用'100%'表示原始尺寸
+          size: '100%'
         })
         .on('end', () => {
           resolve({
