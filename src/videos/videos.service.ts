@@ -155,4 +155,16 @@ export class VideosService {
         })
     })
   }
+
+  genVideoMeta (filePath) {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(filePath, (err, metadata) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(metadata)
+        }
+      })
+    })
+  }
 }
