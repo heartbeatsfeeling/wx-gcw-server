@@ -1,3 +1,5 @@
+import { VideoType } from 'src/enums'
+
 export interface User {
   id: number
   name: string
@@ -8,7 +10,7 @@ export interface User {
 
 export interface Video {
   id: number
-  path: string,
+  path: string
   title: string
   description: string
   duration: number
@@ -17,6 +19,7 @@ export interface Video {
   likeCount: number
   coverImage: string
   viewCount: number
+  type: VideoType
 }
 
 export interface AdminUser {
