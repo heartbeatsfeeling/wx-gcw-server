@@ -3,10 +3,8 @@ import { VideosService } from './videos.service'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { uploadFileSize, uploadFilePath } from 'src/common/config'
-import { extname } from 'path'
 import { VideoTypeDtoOptional, VideoUploadDto } from 'src/common/dto/videos.dto'
 import { unlinkSync } from 'fs'
-import { randomUUID } from 'crypto'
 
 @Controller('videos')
 export class VideosController {
