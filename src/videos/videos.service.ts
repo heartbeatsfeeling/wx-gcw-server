@@ -108,14 +108,8 @@ export class VideosService {
    */
   async addVideo (title: string, description: string, filePath: string, type: VideoType, hash: string) {
     if (title && description && filePath) {
-      const cover = { status: false, data: '1' }
-      try {
-        await this.genCoverImage(filePath)
-      } catch (e) {
-        console.log(e)
-      }
+      const cover = await this.genCoverImage(filePath)
       const meta = await this.genVideoMeta(filePath)
-      console.log('meta', meta)
       if (cover.status && meta.status) {
         const metadata = meta.data!
         const sql = `
@@ -190,7 +184,8 @@ export class VideosService {
             status: true
           })
         })
-        .on('error', () => {
+        .on('error', (e) => {
+          console.log(e, videoPath)
           reject({
             status: false
           })
