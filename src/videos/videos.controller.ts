@@ -46,12 +46,15 @@ export class VideosController {
     @Body() { title, description, type }: VideoUploadDto,
     @UploadedFile() file
   ) {
+    console.log('上传成功')
     const hash = await this.videosService.calculateFileHash(file.path)
+    console.log('hash')
     const existingVideo = await this.videosService.findByHash(hash)
     if (existingVideo) {
       unlinkSync(file.path)
       throw new HttpException('文件已经存在', HttpStatus.OK)
     } else {
+      console.log('hash1')
       return await this.videosService.addVideo(title, description, file.path, type, hash)
     }
   }
