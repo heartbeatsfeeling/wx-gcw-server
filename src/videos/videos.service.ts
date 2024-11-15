@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { coverImageFilePath, dateFormat } from 'src/common/config'
+import { coverImageFilePath, coverImageStaticPath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
 import { createReadStream, existsSync, unlinkSync } from 'fs'
@@ -8,7 +8,7 @@ import { VideoType } from 'src/enums'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
-import { join } from 'path'
+import { basename, join, normalize } from 'path'
 ffmpeg.setFfmpegPath(ffmpegPath)
 ffmpeg.setFfprobePath(ffprobePath.path)
 
@@ -118,7 +118,7 @@ export class VideosService {
             VALUES
           (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `
-        const res = await this.databaseService.query(sql, [title, description, filePath, metadata.duration, cover.data!, type, hash, metadata.size, metadata.width, metadata.height])
+        const res = await this.databaseService.query(sql, [title, description, normalize(join(videoStaticPath, basename(filePath))), metadata.duration, cover.data!, type, hash, metadata.size, metadata.width, metadata.height])
         return res.affectedRows >= 1
       }
     }
@@ -129,11 +129,13 @@ export class VideosService {
     const sql = 'DELETE FROM `videos` WHERE `id`= ?'
     const video = (await this.databaseService.query<Video[]>('SELECT *, cover_image as coverImage FROM `videos` WHERE `id` = ?', [id]))[0]
     if (video) {
-      if (existsSync(video.coverImage)) {
-        unlinkSync(video.coverImage)
+      const coverImagePath = join(coverImageFilePath, basename(video.coverImage))
+      const videoPath = join(uploadFilePath, basename(video.path))
+      if (existsSync(coverImagePath)) {
+        unlinkSync(coverImagePath)
       }
-      if (existsSync(video.path)) {
-        unlinkSync(video.path)
+      if (existsSync(videoPath)) {
+        unlinkSync(videoPath)
       }
       const res = await this.databaseService.query(sql, [id])
       return res.affectedRows >= 1
@@ -168,7 +170,7 @@ export class VideosService {
    */
   genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
     return new Promise((resolve, reject) => {
-      const filename = `${videoPath.split('/').pop().split('.')[0]}.png`
+      const filename = `${basename(videoPath).split('.')[0]}.png`
       ffmpeg(videoPath)
         .screenshots({
           timestamps: [0],
@@ -178,7 +180,7 @@ export class VideosService {
         })
         .on('end', () => {
           resolve({
-            data: join(coverImageFilePath, filename),
+            data: normalize(join(coverImageStaticPath, basename(filename))),
             status: true
           })
         })
