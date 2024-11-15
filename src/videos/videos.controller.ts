@@ -35,7 +35,7 @@ export class VideosController {
       storage: diskStorage({
         destination: uploadFilePath,
         filename: (_, file, callback) => {
-          const filename = `${randomUUID()}${extname(file.originalname)}`
+          const filename = 'a.mp4'
           callback(null, filename)
         }
       }),
