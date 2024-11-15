@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common'
 import { coverImageFilePath, dateFormat } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
-import * as fs from 'fs'
+import { createReadStream, existsSync, unlinkSync } from 'fs'
 import * as crypto from 'crypto'
 import { VideoType } from 'src/enums'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
+import { join } from 'path'
 ffmpeg.setFfmpegPath(ffmpegPath)
 ffmpeg.setFfprobePath(ffprobePath.path)
 
@@ -29,6 +30,9 @@ export class VideosService {
         videos.description,
         videos.duration,
         videos.type,
+        videos.width,
+        videos.height,
+        videos.size,
         videos.cover_image as coverImage,
         DATE_FORMAT(MAX(likes.liked_at), ?) AS likedAtTime,
         DATE_FORMAT(videos.create_time, ?) AS createTime,
@@ -43,7 +47,7 @@ export class VideosService {
       WHERE
         (videos.type = ? OR ? IS NULL)
       GROUP BY
-        videos.id, videos.path, videos.title, videos.description, videos.duration, videos.type, videos.cover_image
+        videos.id, videos.path, videos.title, videos.description, videos.duration, videos.type, videos.cover_image, videos.width, videos.height, videos.size
       ORDER BY
         videos.create_time DESC
     `
@@ -63,6 +67,9 @@ export class VideosService {
         videos.description,
         videos.duration,
         videos.type,
+        videos.width,
+        videos.height,
+        videos.size,
         videos.cover_image as coverImage,
         DATE_FORMAT(MAX(likes.liked_at), ?) AS likedAtTime,
         DATE_FORMAT(videos.create_time, ?) AS createTime,
@@ -74,7 +81,7 @@ export class VideosService {
       WHERE
         videos.id = ?
       GROUP BY
-        videos.id, videos.path, videos.title, videos.description, videos.duration, videos.type, videos.cover_image
+        videos.id, videos.path, videos.title, videos.description, videos.duration, videos.type, videos.cover_image, videos.width, videos.height, videos.size
     `
     const detail = await this.databaseService.query<Video>(sql, [dateFormat.format, dateFormat.format, id])
     return detail?.[0] ?? null
@@ -99,14 +106,39 @@ export class VideosService {
   /**
    * 添加video
    */
-  async addVideo (title: string, description: string, filePath: string, type: VideoType, hash?: string) {
+  async addVideo (title: string, description: string, filePath: string, type: VideoType, hash: string) {
     if (title && description && filePath) {
-      const sql = 'INSERT INTO videos (title, description, path, duration, cover_image, type, hash) VALUES (?, ?, ?, ?, ?, ?, ?)'
-      const res = await this.databaseService.query(sql, [title, description, filePath, 1000, 'a.png', type, hash])
-      return res.affectedRows >= 1
-    } else {
-      return false
+      const cover = await this.genCoverImage(filePath)
+      const meta = await this.genVideoMeta(filePath)
+      if (cover.status && meta.status) {
+        const metadata = meta.data!
+        const sql = `
+          INSERT INTO videos
+            (title, description, path, duration, cover_image, type, hash, size, width, height)
+            VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `
+        const res = await this.databaseService.query(sql, [title, description, filePath, metadata.duration, cover.data!, type, hash, metadata.size, metadata.width, metadata.height])
+        return res.affectedRows >= 1
+      }
     }
+    return false
+  }
+
+  async deleteVideo (id: number) {
+    const sql = 'DELETE FROM `videos` WHERE `id`= ?'
+    const video = (await this.databaseService.query<Video[]>('SELECT *, cover_image as coverImage FROM `videos` WHERE `id` = ?', [id]))[0]
+    if (video) {
+      if (existsSync(video.coverImage)) {
+        unlinkSync(video.coverImage)
+      }
+      if (existsSync(video.path)) {
+        unlinkSync(video.path)
+      }
+      const res = await this.databaseService.query(sql, [id])
+      return res.affectedRows >= 1
+    }
+    return false
   }
 
   /**
@@ -115,7 +147,7 @@ export class VideosService {
   calculateFileHash (filePath: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const hash = crypto.createHash('sha256')
-      const stream = fs.createReadStream(filePath)
+      const stream = createReadStream(filePath)
 
       stream.on('data', (chunk) => {
         hash.update(chunk)
@@ -134,9 +166,9 @@ export class VideosService {
   /**
    * 生成视频第一帧图片
    */
-  genCoverImage (videoPath: string): Promise<{ status: boolean, data: string }> {
+  genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
     return new Promise((resolve, reject) => {
-      const filename = `${Date.now()}-${videoPath.split('/').pop()}.png`
+      const filename = `${videoPath.split('/').pop().split('.')[0]}.png`
       ffmpeg(videoPath)
         .screenshots({
           timestamps: [0],
@@ -146,23 +178,35 @@ export class VideosService {
         })
         .on('end', () => {
           resolve({
-            data: filename,
+            data: join(coverImageFilePath, filename),
             status: true
           })
         })
-        .on('error', (e) => {
-          reject(e)
+        .on('error', () => {
+          reject({
+            status: false
+          })
         })
     })
   }
 
-  genVideoMeta (filePath) {
+  genVideoMeta (filePath: string): Promise<{ status: boolean, data: { duration: number, size: number, width: number, height: number } }> {
     return new Promise((resolve, reject) => {
       ffmpeg.ffprobe(filePath, (err, metadata) => {
         if (err) {
-          reject(err)
+          reject({
+            status: false
+          })
         } else {
-          resolve(metadata)
+          resolve({
+            status: true,
+            data: {
+              duration: metadata.format.duration,
+              size: metadata.format.size,
+              width: metadata.streams[0].width,
+              height: metadata.streams[0].height
+            }
+          })
         }
       })
     })

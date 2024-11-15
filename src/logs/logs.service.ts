@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt'
 import { AuthService } from 'src/auth/auth.service'
 import { dateFormat } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
-import { User } from 'types/db'
 
 @Injectable()
 export class LogsService {
@@ -37,17 +36,9 @@ export class LogsService {
     return this.databaseService.query(sql, [dateFormat.format])
   }
 
-  async like (token: string, videoId: number) {
-    const openid = await this.authService.token2openid(token)
-    const userId = await this.databaseService.query<User[]>('SELECT * FROM users WHERE openid = ?', [openid])
-    if (userId?.length) {
-      const sql = `
-        INSERT INTO
-          likes (user_id, video_id) VALUES (?, ?)
-        ON
-          DUPLICATE KEY UPDATE liked_at = CURRENT_TIMESTAMP
-      `
-      this.databaseService.query(sql, [videoId, userId[0].id])
-    }
+  async addLog (userId: number, videoId: number) {
+    const sql = 'INSERT INTO `video_play_logs` (user_id, video_id) VALUES (?, ?)'
+    const res = await this.databaseService.query(sql, [userId, videoId])
+    return res.affectedRows >= 1
   }
 }

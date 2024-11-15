@@ -20,6 +20,9 @@ export interface Video {
   coverImage: string
   viewCount: number
   type: VideoType
+  width: number
+  height: number
+  size: number
 }
 
 export interface AdminUser {
@@ -32,6 +35,8 @@ export interface Like {
   id: number
   userId: number
   videoId: number
+  title: string
+  createTime: string
 }
 
 export interface Log {

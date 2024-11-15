@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common'
 import { VideosService } from './videos.service'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
@@ -6,6 +6,7 @@ import { uploadFileSize, uploadFilePath } from 'src/common/config'
 import { extname } from 'path'
 import { VideoTypeDtoOptional, VideoUploadDto } from 'src/common/dto/videos.dto'
 import { unlinkSync } from 'fs'
+import { randomUUID } from 'crypto'
 
 @Controller('videos')
 export class VideosController {
@@ -21,27 +22,27 @@ export class VideosController {
     return list
   }
 
-  @Get('/:id')
+  @Get(':id')
   async getVideoDetail (@Param('id') id: number) {
     const detail = await this.videosService.getVideoDetail(id)
     return detail
   }
 
-  @Post('upload')
+  @Post('add')
   @HttpCode(200)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
         destination: uploadFilePath,
         filename: (_, file, callback) => {
-          const filename = Date.now() + extname(file.originalname)
+          const filename = `${randomUUID()}${extname(file.originalname)}`
           callback(null, filename)
         }
       }),
       limits: { fileSize: uploadFileSize }
     })
   )
-  async uploadVideo (
+  async addVideo (
     @Body() { title, description, type }: VideoUploadDto,
     @UploadedFile() file
   ) {
@@ -53,5 +54,12 @@ export class VideosController {
     } else {
       return await this.videosService.addVideo(title, description, file.path, type, hash)
     }
+  }
+
+  @Delete(':id')
+  async deleteVideo (
+    @Param('id', ParseIntPipe) id: number
+  ) {
+    return this.videosService.deleteVideo(id)
   }
 }
