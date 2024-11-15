@@ -8,7 +8,7 @@ import { VideoType } from 'src/enums'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
-import { basename, join, normalize } from 'path'
+import { basename, join, posix } from 'path'
 ffmpeg.setFfmpegPath(ffmpegPath)
 ffmpeg.setFfprobePath(ffprobePath.path)
 
@@ -118,7 +118,7 @@ export class VideosService {
             VALUES
           (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `
-        const res = await this.databaseService.query(sql, [title, description, normalize(join(videoStaticPath, basename(filePath))), metadata.duration, cover.data!, type, hash, metadata.size, metadata.width, metadata.height])
+        const res = await this.databaseService.query(sql, [title, description, posix.join(videoStaticPath, basename(filePath)), metadata.duration, cover.data!, type, hash, metadata.size, metadata.width, metadata.height])
         return res.affectedRows >= 1
       }
     }
@@ -180,7 +180,7 @@ export class VideosService {
         })
         .on('end', () => {
           resolve({
-            data: normalize(join(coverImageStaticPath, basename(filename))),
+            data: posix.join(coverImageStaticPath, basename(filename)),
             status: true
           })
         })
