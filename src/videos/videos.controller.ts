@@ -3,8 +3,10 @@ import { VideosService } from './videos.service'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { uploadFileSize, uploadFilePath } from 'src/common/config'
+import { extname } from 'path'
 import { VideoTypeDtoOptional, VideoUploadDto } from 'src/common/dto/videos.dto'
 import { unlinkSync } from 'fs'
+import { randomUUID } from 'crypto'
 
 @Controller('videos')
 export class VideosController {
@@ -33,8 +35,8 @@ export class VideosController {
       storage: diskStorage({
         destination: uploadFilePath,
         filename: (_, file, callback) => {
-          console.log('file', file)
-          callback(null, 'abc.mp1')
+          const filename = `${randomUUID()}${extname(file.originalname)}`
+          callback(null, filename)
         }
       }),
       limits: { fileSize: uploadFileSize }
@@ -44,15 +46,12 @@ export class VideosController {
     @Body() { title, description, type }: VideoUploadDto,
     @UploadedFile() file
   ) {
-    console.log('上传成功')
     const hash = await this.videosService.calculateFileHash(file.path)
-    console.log('hash')
     const existingVideo = await this.videosService.findByHash(hash)
     if (existingVideo) {
       unlinkSync(file.path)
       throw new HttpException('文件已经存在', HttpStatus.OK)
     } else {
-      console.log('hash1')
       return await this.videosService.addVideo(title, description, file.path, type, hash)
     }
   }
