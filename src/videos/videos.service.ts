@@ -108,8 +108,14 @@ export class VideosService {
    */
   async addVideo (title: string, description: string, filePath: string, type: VideoType, hash: string) {
     if (title && description && filePath) {
-      const cover = await this.genCoverImage(filePath)
+      const cover = { status: false, data: '1' }
+      try {
+        await this.genCoverImage(filePath)
+      } catch (e) {
+        console.log(e)
+      }
       const meta = await this.genVideoMeta(filePath)
+      console.log('meta', meta)
       if (cover.status && meta.status) {
         const metadata = meta.data!
         const sql = `
