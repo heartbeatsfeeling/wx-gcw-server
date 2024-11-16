@@ -6,10 +6,9 @@ import { createReadStream, existsSync, unlinkSync } from 'fs'
 import * as crypto from 'crypto'
 import { VideoType } from 'src/enums'
 import ffmpeg from 'fluent-ffmpeg'
-import ffmpegPath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
 import { basename, join, posix } from 'path'
-ffmpeg.setFfmpegPath(ffmpegPath)
+ffmpeg.setFfmpegPath('/usr/bin/ffmpeg')
 ffmpeg.setFfprobePath(ffprobePath.path)
 
 @Injectable()
@@ -175,12 +174,12 @@ export class VideosService {
         .screenshots({
           timestamps: [0],
           filename,
-          folder: './uploads',
+          folder: coverImageFilePath,
           size: '100%'
         })
         .on('end', () => {
           resolve({
-            data: 'aa.png',
+            data: posix.join(coverImageStaticPath, basename(filename)),
             status: true
           })
         })
