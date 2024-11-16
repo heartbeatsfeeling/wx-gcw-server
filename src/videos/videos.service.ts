@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { coverImageFilePath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
+import { coverImageFilePath, coverImageStaticPath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
 import { createReadStream, existsSync, unlinkSync } from 'fs'
@@ -9,7 +9,10 @@ import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
 import { basename, join, posix } from 'path'
-ffmpeg.setFfmpegPath(ffmpegPath)
+
+if (process.env.NODE_ENV === 'development') {
+  ffmpeg.setFfmpegPath(ffmpegPath)
+}
 ffmpeg.setFfprobePath(ffprobePath.path)
 
 @Injectable()
@@ -168,8 +171,29 @@ export class VideosService {
   /**
    * 生成视频第一帧图片
    */
-  genCoverImage () {
-    ffmpeg('./a.mp4')
+  genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
+    return new Promise((resolve, reject) => {
+      const filename = `${basename(videoPath).split('.')[0]}.png`
+      ffmpeg(videoPath)
+        .screenshots({
+          timestamps: [0],
+          filename,
+          folder: coverImageFilePath,
+          size: '100%'
+        })
+        .on('end', () => {
+          resolve({
+            data: posix.join(coverImageStaticPath, basename(filename)),
+            status: true
+          })
+        })
+        .on('error', (e) => {
+          console.log(e, videoPath)
+          reject({
+            status: false
+          })
+        })
+    })
   }
 
   genVideoMeta (filePath: string): Promise<{ status: boolean, data: { duration: number, size: number, width: number, height: number } }> {
