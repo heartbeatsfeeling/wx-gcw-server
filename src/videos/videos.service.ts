@@ -168,28 +168,8 @@ export class VideosService {
   /**
    * 生成视频第一帧图片
    */
-  genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
-    return new Promise((resolve, reject) => {
-      console.log(posix.join(videoPath))
-      ffmpeg('./a.mp4')
-        .screenshots({
-          timestamps: [0],
-          filename: 'a.png',
-          folder: './',
-          size: '100%'
-        })
-        .on('end', () => {
-          resolve({
-            status: true
-          })
-        })
-        .on('error', (e) => {
-          console.log(e, videoPath)
-          reject({
-            status: false
-          })
-        })
-    })
+  genCoverImage () {
+    ffmpeg('./a.mp4')
   }
 
   genVideoMeta (filePath: string): Promise<{ status: boolean, data: { duration: number, size: number, width: number, height: number } }> {
