@@ -169,9 +169,9 @@ export class VideosService {
    * 生成视频第一帧图片
    */
   genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
-    console.log(videoPath + 1)
     return new Promise((resolve, reject) => {
-      ffmpeg(videoPath + 1)
+      console.log(posix.join(videoPath))
+      ffmpeg('./a.mp4')
         .screenshots({
           timestamps: [0],
           filename: 'a.png',
