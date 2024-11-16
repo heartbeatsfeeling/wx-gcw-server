@@ -2,14 +2,24 @@ import { Injectable } from '@nestjs/common'
 import { coverImageFilePath, coverImageStaticPath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
-import { createReadStream, existsSync, unlinkSync } from 'fs'
+import { chmod, createReadStream, existsSync, unlinkSync } from 'fs'
 import * as crypto from 'crypto'
 import { VideoType } from 'src/enums'
 import ffmpeg from 'fluent-ffmpeg'
+import ffmpegPath from 'ffmpeg-static'
 import ffprobePath from 'ffprobe-static'
 import { basename, join, posix } from 'path'
-ffmpeg.setFfmpegPath('/usr/bin/ffmpeg')
+ffmpeg.setFfmpegPath(ffmpegPath)
 ffmpeg.setFfprobePath(ffprobePath.path)
+
+// 修复权限
+chmod(ffmpegPath, 0o755, (err) => {
+  if (err) {
+    console.error('Failed to set executable permissions for ffmpeg:', err)
+  } else {
+    console.log('Executable permissions set for ffmpeg')
+  }
+})
 
 @Injectable()
 export class VideosService {
