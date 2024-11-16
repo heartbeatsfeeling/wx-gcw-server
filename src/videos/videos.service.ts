@@ -170,12 +170,11 @@ export class VideosService {
    */
   genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
     return new Promise((resolve, reject) => {
-      const filename = `${basename(videoPath).split('.')[0]}.png`
       ffmpeg(videoPath)
         .screenshots({
           timestamps: [0],
-          filename,
-          folder: coverImageFilePath,
+          filename: 'a.png',
+          folder: './',
           size: '100%'
         })
         .on('end', () => {
