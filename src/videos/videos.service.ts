@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { coverImageFilePath, coverImageStaticPath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
-import { chmod, createReadStream, existsSync, unlinkSync } from 'fs'
+import { createReadStream, existsSync, unlinkSync } from 'fs'
 import * as crypto from 'crypto'
 import { VideoType } from 'src/enums'
 import ffmpeg from 'fluent-ffmpeg'
@@ -171,31 +171,25 @@ export class VideosService {
   genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
     return new Promise((resolve, reject) => {
       const filename = `${basename(videoPath).split('.')[0]}.png`
-      chmod(ffmpegPath, 0o755, (err) => {
-        if (!err) {
-          ffmpeg(videoPath)
-            .screenshots({
-              timestamps: [0],
-              filename,
-              folder: coverImageFilePath,
-              size: '100%'
-            })
-            .on('end', () => {
-              resolve({
-                data: posix.join(coverImageStaticPath, basename(filename)),
-                status: true
-              })
-            })
-            .on('error', (e) => {
-              console.log(e, videoPath)
-              reject({
-                status: false
-              })
-            })
-        } else {
-          console.error('err', err)
-        }
-      })
+      ffmpeg(videoPath)
+        .screenshots({
+          timestamps: [0],
+          filename,
+          folder: coverImageFilePath,
+          size: '100%'
+        })
+        .on('end', () => {
+          resolve({
+            data: posix.join(coverImageStaticPath, basename(filename)),
+            status: true
+          })
+        })
+        .on('error', (e) => {
+          console.log(e, videoPath)
+          reject({
+            status: false
+          })
+        })
     })
   }
 
