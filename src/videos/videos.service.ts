@@ -175,7 +175,7 @@ export class VideosService {
         .screenshots({
           timestamps: [0],
           filename,
-          folder: coverImageFilePath,
+          folder: './uploads',
           size: '100%'
         })
         .on('end', () => {
