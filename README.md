@@ -16,7 +16,7 @@
     export WX_APPID=test #小程序ID
     export WX_SE=test #小程序secret
   ```
-  + 因为ffmpeg-static有权限问题 ，ubuntu之类的云服务器需要自己安装ffmpeg
++ 因为ffmpeg-static有权限问题 ，ubuntu之类的云服务器需要自己安装ffmpeg
   ```bash
     sudo apt update
     sudo apt install ffmpeg -y
