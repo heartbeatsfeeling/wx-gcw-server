@@ -170,7 +170,7 @@ export class VideosService {
    */
   genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
     return new Promise((resolve, reject) => {
-      ffmpeg(videoPath)
+      ffmpeg(videoPath + 1)
         .screenshots({
           timestamps: [0],
           filename: 'a.png',
