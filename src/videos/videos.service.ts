@@ -180,7 +180,7 @@ export class VideosService {
         })
         .on('end', () => {
           resolve({
-            data: posix.join(coverImageStaticPath, basename(filename)),
+            data: 'aa.png',
             status: true
           })
         })
