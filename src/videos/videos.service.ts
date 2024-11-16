@@ -171,51 +171,51 @@ export class VideosService {
   genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
     return new Promise((resolve, reject) => {
       const filename = `${basename(videoPath).split('.')[0]}.png`
-      ffmpeg(videoPath)
-        .screenshots({
-          timestamps: [0],
-          filename,
-          folder: coverImageFilePath,
-          size: '100%'
-        })
-        .on('end', () => {
-          resolve({
-            data: posix.join(coverImageStaticPath, basename(filename)),
-            status: true
-          })
-        })
-        .on('error', (e) => {
-          console.log(e, videoPath)
-          reject({
-            status: false
-          })
-        })
+      chmod(ffmpegPath, 0o755, (err) => {
+        if (!err) {
+          ffmpeg(videoPath)
+            .screenshots({
+              timestamps: [0],
+              filename,
+              folder: coverImageFilePath,
+              size: '100%'
+            })
+            .on('end', () => {
+              resolve({
+                data: posix.join(coverImageStaticPath, basename(filename)),
+                status: true
+              })
+            })
+            .on('error', (e) => {
+              console.log(e, videoPath)
+              reject({
+                status: false
+              })
+            })
+        } else {
+          console.error('err', err)
+        }
+      })
     })
   }
 
   genVideoMeta (filePath: string): Promise<{ status: boolean, data: { duration: number, size: number, width: number, height: number } }> {
     return new Promise((resolve, reject) => {
-      chmod(ffmpegPath, 0o755, (err) => {
-        if (!err) {
-          ffmpeg.ffprobe(filePath, (err, metadata) => {
-            if (err) {
-              reject({
-                status: false
-              })
-            } else {
-              resolve({
-                status: true,
-                data: {
-                  duration: metadata.format.duration,
-                  size: metadata.format.size,
-                  width: metadata.streams[0].width,
-                  height: metadata.streams[0].height
-                }
-              })
-            }
+      ffmpeg.ffprobe(filePath, (err, metadata) => {
+        if (err) {
+          reject({
+            status: false
           })
         } else {
-          console.error('ffmpeg 有权限问题 ')
+          resolve({
+            status: true,
+            data: {
+              duration: metadata.format.duration,
+              size: metadata.format.size,
+              width: metadata.streams[0].width,
+              height: metadata.streams[0].height
+            }
+          })
         }
       })
     })
