@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { coverImageFilePath, coverImageStaticPath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
+import { coverImageFilePath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
 import { createReadStream, existsSync, unlinkSync } from 'fs'
@@ -180,7 +180,6 @@ export class VideosService {
         })
         .on('end', () => {
           resolve({
-            data: posix.join(coverImageStaticPath, basename(filename)),
             status: true
           })
         })
