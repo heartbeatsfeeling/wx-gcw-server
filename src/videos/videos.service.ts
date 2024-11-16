@@ -12,15 +12,6 @@ import { basename, join, posix } from 'path'
 ffmpeg.setFfmpegPath(ffmpegPath)
 ffmpeg.setFfprobePath(ffprobePath.path)
 
-// 修复权限
-chmod(ffmpegPath, 0o755, (err) => {
-  if (err) {
-    console.error('Failed to set executable permissions for ffmpeg:', err)
-  } else {
-    console.log('Executable permissions set for ffmpeg')
-  }
-})
-
 @Injectable()
 export class VideosService {
   constructor (
@@ -204,21 +195,27 @@ export class VideosService {
 
   genVideoMeta (filePath: string): Promise<{ status: boolean, data: { duration: number, size: number, width: number, height: number } }> {
     return new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(filePath, (err, metadata) => {
-        if (err) {
-          reject({
-            status: false
-          })
-        } else {
-          resolve({
-            status: true,
-            data: {
-              duration: metadata.format.duration,
-              size: metadata.format.size,
-              width: metadata.streams[0].width,
-              height: metadata.streams[0].height
+      chmod(ffmpegPath, 0o755, (err) => {
+        if (!err) {
+          ffmpeg.ffprobe(filePath, (err, metadata) => {
+            if (err) {
+              reject({
+                status: false
+              })
+            } else {
+              resolve({
+                status: true,
+                data: {
+                  duration: metadata.format.duration,
+                  size: metadata.format.size,
+                  width: metadata.streams[0].width,
+                  height: metadata.streams[0].height
+                }
+              })
             }
           })
+        } else {
+          console.error('ffmpeg 有权限问题 ')
         }
       })
     })
