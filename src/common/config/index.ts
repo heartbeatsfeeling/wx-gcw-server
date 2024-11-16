@@ -7,7 +7,7 @@ export const jwtConfig = {
  */
 export const uploadFilePath = '/home/ubuntu/uploads/gcw-videos'
 export const coverImageFilePath = '/home/ubuntu/uploads/gcw-images'
-export const videoStaticPath = '/files/gcw-videos'
+export const videoStaticPath = '/file/gcw-videos'
 export const coverImageStaticPath = '/file/gcw-images'
 /**
  * 上传文件最大限制200m
