@@ -180,7 +180,7 @@ export class VideosService {
           timestamps: [0],
           filename,
           folder: coverImageFilePath,
-          size: '100%'
+          size: '640x?'
         })
         .on('end', () => {
           resolve({
