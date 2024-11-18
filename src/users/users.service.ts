@@ -34,19 +34,19 @@ export class UsersService {
   }
 
   async findUser (openid: string) {
-    const sql = 'SELECT * FROM `users` WHERE `user_id` = ?'
+    const sql = 'SELECT * FROM `users` WHERE `openid` = ?'
     const res = await this.databaseService.query<User[]>(sql, [openid])
     return res?.[0]
   }
 
   async createUser (openid: string) {
-    const sql = 'INSERT INTO `users` (`user_id`) VALUES (?)'
+    const sql = 'INSERT INTO `users` (`openid`) VALUES (?)'
     const res = await this.databaseService.query<ResultSetHeader>(sql, [openid])
     return res.affectedRows >= 1
   }
 
   async updateUser (openid: string) {
-    const sql = 'UPDATE `users` SET `last_login_time` = CURRENT_TIMESTAMP WHERE `user_id` = ?'
+    const sql = 'UPDATE `users` SET `last_login_time` = CURRENT_TIMESTAMP WHERE `openid` = ?'
     const res = await this.databaseService.query<ResultSetHeader>(sql, [openid])
     return res.affectedRows >= 1
   }

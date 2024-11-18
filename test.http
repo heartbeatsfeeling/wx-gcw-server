@@ -1,7 +1,8 @@
 
 @baseUrl = http://127.0.0.1:3000
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwidXNlcklkIjoxLCJpYXQiOjE3MzA5NTczMTIsImV4cCI6MTczMTA0MzcxMn0.GCX_zra2o4T22b3kuDPOXEgwayDLSjaqy0rzwG4y9dA
-@wxToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcGVuaWQiOiJvV09PZjdTQ0pqZGw0dkxsTlV0S3hXaUZ2OUxZIiwiaWF0IjoxNzMxNjUzMjI2LCJleHAiOjE3MzE3Mzk2MjZ9.7KlmTJvh4XjjMo0kaocILURfZ7WxgTyg_u9cXcO2TgE
+
+@wxToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcGVuaWQiOiJvV09PZjdTQ0pqZGw0dkxsTlV0S3hXaUZ2OUxZIiwiaWF0IjoxNzMxOTExMzk5LCJleHAiOjE3MzE5OTc3OTl9.DB80pR-2s_PD5VupNqV8AgspB6F0TUiBCWqjVv4wn38
 ###  登录
 POST {{baseUrl}}/api/admin/login HTTP/1.1
 content-type: application/json
@@ -47,7 +48,7 @@ Cookie: token={{token}}
 ###  add likes
 POST {{baseUrl}}/api/likes HTTP/1.1
 Content-Type: application/json
-Cookie: token={{wxToken}}
+token: {{wxToken}}
 
 {
     "id": 13
@@ -56,8 +57,8 @@ Cookie: token={{wxToken}}
 ###  delete likes
 DELETE {{baseUrl}}/api/likes HTTP/1.1
 Content-Type: application/json
-Cookie: token={{wxToken}}
+token: {{wxToken}}
 
 {
-    "id": 2
+    "id": 1
 }

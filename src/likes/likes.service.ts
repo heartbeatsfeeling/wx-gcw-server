@@ -9,7 +9,7 @@ export class LikesService {
     private databaseService: DatabaseService
   ) {}
 
-  async findAll () {
+  async findAll (userId?: number) {
     const sql = `
       SELECT
         likes.id,
@@ -23,10 +23,12 @@ export class LikesService {
         videos
       ON
         likes.video_id = videos.id
+      WHERE
+        likes.user_id = ? OR ? IS NULL
       GROUP BY
         likes.id
     `
-    return this.databaseService.query<Like[]>(sql, [dateFormat.format])
+    return this.databaseService.query<Like[]>(sql, [dateFormat.format, userId ?? null, userId ?? null])
   }
 
   async like (userId: number, videoId: number) {

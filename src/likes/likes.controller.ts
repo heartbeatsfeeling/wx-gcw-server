@@ -1,6 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, ParseIntPipe, Post, Req } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Headers, HttpCode, ParseIntPipe, Post } from '@nestjs/common'
 import { LikesService } from './likes.service'
-import { CustomRequest } from 'types/request'
 import { AuthService } from 'src/auth/auth.service'
 import { User } from 'types/db'
 import { DatabaseService } from 'src/database/database.service'
@@ -18,13 +17,29 @@ export class LikesController {
     return this.likesService.findAll()
   }
 
+  @Get('user')
+  async findByUser (
+    @Headers('token') token: string
+  ) {
+    const openid = await this.authService.token2openid(token)
+    console.log(openid)
+    if (openid) {
+      const user = (await this.databaseService.query<User[]>('SELECT * FROM users WHERE openid = ?', [openid]))[0]
+      if (user) {
+        return this.likesService.findAll(user.id)
+      }
+      return []
+    }
+    return []
+  }
+
   @Post()
   @HttpCode(200)
   async like (
     @Body('id', ParseIntPipe) id: number,
-    @Req() request: CustomRequest
+    @Headers('token') token: string
   ) {
-    const openid = await this.authService.token2openid(request.cookies.token)
+    const openid = await this.authService.token2openid(token)
     if (openid) {
       const user = (await this.databaseService.query<User[]>('SELECT * FROM users WHERE openid = ?', [openid]))[0]
       if (user) {
@@ -38,9 +53,9 @@ export class LikesController {
   @Delete()
   async unlike (
     @Body('id', ParseIntPipe) id: number,
-    @Req() request: CustomRequest
+    @Headers('token') token: string
   ) {
-    const openid = await this.authService.token2openid(request.cookies.token)
+    const openid = await this.authService.token2openid(token)
     if (openid) {
       const user = (await this.databaseService.query<User[]>('SELECT * FROM users WHERE openid = ?', [openid]))[0]
       if (user) {

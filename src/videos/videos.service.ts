@@ -61,7 +61,7 @@ export class VideosService {
   /**
    * 获取video 详细
    */
-  async getVideoDetail (id: number) {
+  async getVideoDetail (id: number, userId?: number) {
     const sql = `
       SELECT 
         videos.id,
@@ -76,7 +76,8 @@ export class VideosService {
         videos.cover_image as coverImage,
         DATE_FORMAT(MAX(likes.liked_at), ?) AS likedAtTime,
         DATE_FORMAT(videos.create_time, ?) AS createTime,
-        COUNT(likes.id) AS likeCount
+        COUNT(likes.id) AS likeCount,
+        EXISTS(SELECT 1 FROM likes WHERE likes.video_id = videos.id AND likes.user_id = ?) AS isLike
       FROM 
         videos
       LEFT JOIN 
@@ -86,7 +87,7 @@ export class VideosService {
       GROUP BY
         videos.id, videos.path, videos.title, videos.description, videos.duration, videos.type, videos.cover_image, videos.width, videos.height, videos.size
     `
-    const detail = await this.databaseService.query<Video>(sql, [dateFormat.format, dateFormat.format, id])
+    const detail = await this.databaseService.query<Video>(sql, [dateFormat.format, dateFormat.format, userId ?? null, id])
     return detail?.[0] ?? null
   }
 
