@@ -54,7 +54,13 @@ export class VideosController {
           callback(null, filename)
         }
       }),
-      limits: { fileSize: uploadFileSize }
+      limits: { fileSize: uploadFileSize },
+      fileFilter: (_, file, callback) => {
+        if (!file.mimetype.includes('video')) {
+          return callback(new Error('Invalid file type'), false)
+        }
+        callback(null, true)
+      }
     })
   )
   async addVideo (

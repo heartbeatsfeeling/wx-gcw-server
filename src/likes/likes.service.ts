@@ -16,6 +16,8 @@ export class LikesService {
         likes.user_id as userId,
         likes.video_id as videoId,
         videos.title,
+        videos.path,
+        videos.cover_image as coverImage,
         DATE_FORMAT(likes.liked_at, ?) AS createTime
       FROM
         likes
