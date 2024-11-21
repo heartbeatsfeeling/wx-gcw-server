@@ -11,7 +11,7 @@ export class DatabaseService {
       host: dbConfig.host,
       port: 3306,
       user: 'root',
-      password: 'xtdgjhch1016',
+      password: dbConfig.password,
       database: 'gcw',
       waitForConnections: true,
       connectionLimit: 10,
