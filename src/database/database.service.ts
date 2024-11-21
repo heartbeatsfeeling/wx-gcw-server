@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import * as mysql from 'mysql2/promise'
+import { dbConfig } from 'src/common/config'
 
 @Injectable()
 export class DatabaseService {
@@ -7,10 +8,10 @@ export class DatabaseService {
 
   constructor () {
     this.pool = mysql.createPool({
-      host: '127.0.0.1',
+      host: dbConfig.host,
       port: 3306,
       user: 'root',
-      password: 'xtdgjhch1016',
+      password: dbConfig.password,
       database: 'gcw',
       waitForConnections: true,
       connectionLimit: 10,
