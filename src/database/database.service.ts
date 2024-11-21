@@ -8,10 +8,10 @@ export class DatabaseService {
 
   constructor () {
     this.pool = mysql.createPool({
-      host: dbConfig.host,
+      host: '127.0.0.1',
       port: 3306,
       user: 'root',
-      password: dbConfig.password,
+      password: 'xtdgjhch1016',
       database: 'gcw',
       waitForConnections: true,
       connectionLimit: 10,
