@@ -9,6 +9,7 @@ export const jwtConfig = {
   secret: process.env.SECRET,
   expiresIn: `${process.env.JWT_EXPIRES}m`
 }
+console.log(process.env, process.env.DB_PASSWORD)
 
 // 上传文件存放位置
 export const uploadFilePath = process.env.VIDEO_UPLOAD_PATH
