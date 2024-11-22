@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { DatabaseService } from '../database/database.service'
 import { User } from 'types/db'
 import { ResultSetHeader } from 'mysql2'
-import { dateFormat } from 'src/common/config'
 
 @Injectable()
 export class UsersService {
@@ -29,8 +28,19 @@ export class UsersService {
   }
 
   async findAllUser () {
-    const sql = 'SELECT * , DATE_FORMAT(`create_time`, ?) as createTime, DATE_FORMAT(`last_login_time`, ?) as lastLoginTime FROM `users`'
-    return await this.databaseService.query<User[]>(sql, [dateFormat.format, dateFormat.format])
+    const sql = `
+      SELECT
+        *,
+        UNIX_TIMESTAMP(users.create_time) as createTime,
+        MAX(UNIX_TIMESTAMP(logs.create_time)) as lastLoginTime
+      FROM
+        users
+      LEFT JOIN
+        user_login_logs logs
+      ON
+        users.id = logs.user_id
+    `
+    return await this.databaseService.query<User[]>(sql)
   }
 
   async findUser (openid: string) {
@@ -40,23 +50,12 @@ export class UsersService {
   }
 
   async createUser (openid: string) {
-    const sql = 'INSERT INTO `users` (`openid`) VALUES (?)'
-    const res = await this.databaseService.query<ResultSetHeader>(sql, [openid])
-    return res.affectedRows >= 1
-  }
-
-  async updateUser (openid: string) {
-    const sql = 'UPDATE `users` SET `last_login_time` = CURRENT_TIMESTAMP WHERE `openid` = ?'
-    const res = await this.databaseService.query<ResultSetHeader>(sql, [openid])
-    return res.affectedRows >= 1
-  }
-
-  async saveUser (openid: string) {
     const user = await this.findUser(openid)
-    if (user) {
-      await this.updateUser(openid)
-    } else {
-      await this.createUser(openid)
+    if (!user) {
+      const sql = 'INSERT INTO `users` (`openid`) VALUES (?)'
+      const res = await this.databaseService.query<ResultSetHeader>(sql, [openid])
+      return res.affectedRows >= 1
     }
+    return true
   }
 }

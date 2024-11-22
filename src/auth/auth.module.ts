@@ -7,12 +7,14 @@ import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule } from '@nestjs/config'
 import { DatabaseModule } from 'src/database/database.module'
 import { jwtConfig } from 'src/common/config'
+import { UserLoginLogsModule } from 'src/user-login-logs/user-login-logs.module'
 @Module({
   imports: [
     UsersModule,
     HttpModule,
     ConfigModule,
     DatabaseModule,
+    UserLoginLogsModule,
     JwtModule.register({
       global: true,
       secret: jwtConfig.secret,

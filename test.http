@@ -62,3 +62,11 @@ token: {{wxToken}}
 {
     "id": 1
 }
+
+###  get all user
+GET {{baseUrl}}/api/users HTTP/1.1
+Cookie: token={{token}}
+
+###  get all user_login_logs
+GET {{baseUrl}}/api/user-login-logs HTTP/1.1
+Cookie: token={{token}}

@@ -13,6 +13,7 @@ import { VideosModule } from './videos/videos.module'
 import { DatabaseModule } from './database/database.module'
 import { LikesModule } from './likes/likes.module'
 import { LogsModule } from './logs/logs.module'
+import { UserLoginLogsModule } from './user-login-logs/user-login-logs.module'
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { LogsModule } from './logs/logs.module'
     VideosModule,
     DatabaseModule,
     LikesModule,
-    LogsModule
+    LogsModule,
+    UserLoginLogsModule
   ],
   controllers: [AppController],
   providers: [

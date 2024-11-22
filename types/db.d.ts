@@ -46,3 +46,10 @@ export interface Log {
   videoId: number
   createTime: string
 }
+
+export interface UserLoginLog {
+  id: number
+  userId: number
+  openid: string
+  createTime: string
+}
