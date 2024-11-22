@@ -30,15 +30,19 @@ export class UsersService {
   async findAllUser () {
     const sql = `
       SELECT
-        *,
-        UNIX_TIMESTAMP(users.create_time) as createTime,
-        MAX(UNIX_TIMESTAMP(logs.create_time)) as lastLoginTime
+        users.id,
+        users.openid,
+        users.name,
+        UNIX_TIMESTAMP(users.create_time) * 1000 as createTime,
+        MAX(UNIX_TIMESTAMP(logs.create_time) * 1000) as lastLoginTime
       FROM
         users
       LEFT JOIN
         user_login_logs logs
       ON
         users.id = logs.user_id
+      GROUP BY
+        users.id, users.openid, users.name
     `
     return await this.databaseService.query<User[]>(sql)
   }
