@@ -12,7 +12,7 @@ export class UsersService {
     id: number
     password: string
   }> {
-    const sql = 'SELECT * FROM `adminUsers` WHERE `name` = ?'
+    const sql = 'SELECT * FROM `admin_users` WHERE `name` = ?'
     const user = await this.databaseService.query<{ id: number, name: string, password: string }[]>(sql, [userName])
     return user?.[0]
   }
@@ -22,7 +22,7 @@ export class UsersService {
     id: number
     password: string
   }> {
-    const sql = 'SELECT * FROM `adminUsers` WHERE `name` = ? AND `password` = ?'
+    const sql = 'SELECT * FROM `admin_users` WHERE `name` = ? AND `password` = ?'
     const user = await this.databaseService.query<{ id: number, name: string, password: string }[]>(sql, [userName, password])
     return user?.[0]
   }
