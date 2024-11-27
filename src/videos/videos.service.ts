@@ -188,7 +188,7 @@ export class VideosService {
             status: true
           })
         })
-        .on('error', (e) => {
+        .on('error', () => {
           reject({
             status: false
           })
