@@ -1,8 +1,12 @@
 export interface AdminUserPayLoad {
-    userName: string
-    userId: number
-  }
+  email: string
+  userId: number
+  createTime: number
+  updatedTime: number
+  iat: number
+  exp: number
+}
 
 export interface wxUserPayLoad {
-    openid: string
-  }
+  openid: string
+}

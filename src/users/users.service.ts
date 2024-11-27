@@ -1,29 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { DatabaseService } from '../database/database.service'
-import { User } from 'types/db'
+import { AdminUser, User } from 'types/db'
 import { ResultSetHeader } from 'mysql2'
 
 @Injectable()
 export class UsersService {
   constructor (private readonly databaseService: DatabaseService) {}
 
-  async getAdminUserInfo (userName: string): Promise<null | {
-    name: string
-    id: number
-    password: string
-  }> {
-    const sql = 'SELECT * FROM `admin_users` WHERE `name` = ?'
-    const user = await this.databaseService.query<{ id: number, name: string, password: string }[]>(sql, [userName])
-    return user?.[0]
-  }
-
-  async findAdminUser (userName: string, password: string): Promise<null | {
-    name: string
-    id: number
-    password: string
-  }> {
-    const sql = 'SELECT * FROM `admin_users` WHERE `name` = ? AND `password` = ?'
-    const user = await this.databaseService.query<{ id: number, name: string, password: string }[]>(sql, [userName, password])
+  async getAdminUserInfo (email: string): Promise<null | AdminUser> {
+    const sql = 'SELECT * FROM `admin_users` WHERE `email` = ?'
+    const user = await this.databaseService.query<AdminUser[]>(sql, [email])
     return user?.[0]
   }
 

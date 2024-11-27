@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { firstValueFrom } from 'rxjs'
 import { JwtService } from '@nestjs/jwt'
-import { UsersService } from 'src/users/users.service'
 import { jwtConfig } from 'src/common/config'
 import { AdminUserPayLoad, wxUserPayLoad } from 'types/payload'
 
@@ -10,8 +9,7 @@ import { AdminUserPayLoad, wxUserPayLoad } from 'types/payload'
 export class AuthService {
   constructor (
     private readonly httpService: HttpService,
-    private jwtService: JwtService,
-    private usersService: UsersService
+    private jwtService: JwtService
   ) {}
 
   async jwtVerify<T = any> (token: string): Promise<T | null> {
@@ -36,11 +34,13 @@ export class AuthService {
     })
   }
 
-  async getAdminJWTPayload (token: string): Promise<AdminUserPayLoad> {
+  async getAdminJWTPayload (token: string): Promise<Omit<AdminUserPayLoad, 'iat' | 'exp'>> {
     const payload = await this.jwtVerify<AdminUserPayLoad>(token)
     if (payload) {
       return {
-        userName: payload.userName,
+        createTime: payload.createTime,
+        updatedTime: payload.updatedTime,
+        email: payload.email,
         userId: payload.userId
       }
     } else {
@@ -54,21 +54,6 @@ export class AuthService {
       return payload.openid
     } else {
       return null
-    }
-  }
-
-  async adminLogin (userName: string, password: string) {
-    const user = await this.usersService.findAdminUser(userName, password)
-    if (user?.password !== password) {
-      return {
-        status: false,
-        message: '用户不存在或密码错误'
-      }
-    }
-    const payload = { userName: user.name, userId: user.id }
-    return {
-      status: true,
-      access_token: await this.jwtService.signAsync(payload)
     }
   }
 

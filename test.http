@@ -8,13 +8,12 @@ POST {{baseUrl}}/api/admin/login HTTP/1.1
 content-type: application/json
 
 {
-    "userName": "xtdgjhch",
-    "password": "xtdgjhch1016"
+    "userName": "admin",
+    "password": "123456"
 }
 
 ### 获取admin 用户信息
 GET {{baseUrl}}/api/admin/userInfo HTTP/1.1
-Cookie: token={{token}}
 
 
 ### 获取视频列表
@@ -70,3 +69,24 @@ Cookie: token={{token}}
 ###  get all user_login_logs
 GET {{baseUrl}}/api/user-login-logs HTTP/1.1
 Cookie: token={{token}}
+
+
+### 验证用户名是否可用
+GET {{baseUrl}}/api/admin/check-availability?userName=admin HTTP/1.1
+Cookie: token={{token}}
+
+### 生成验证码
+GET {{baseUrl}}/api/admin/captcha HTTP/1.1
+Cookie: token={{token}}
+
+### 生成验证码
+POST {{baseUrl}}/api/admin/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "userName": "aaa",
+    "password": "123455",
+    "captchaId": "1",
+    "captchaText": "111",
+    "email": "3333"
+}

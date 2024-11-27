@@ -27,8 +27,9 @@ export interface Video {
 
 export interface AdminUser {
   id: number
-  name: string
-  password: string
+  email: string
+  createTime: number
+  updatedTime: number
 }
 
 export interface Like {

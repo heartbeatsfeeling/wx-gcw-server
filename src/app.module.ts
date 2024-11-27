@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { UsersModule } from './users/users.module'
 import { ConfigModule } from '@nestjs/config'
 import { ResponseFormatInterceptor } from './common/interceptors/response-format.interceptor'
@@ -14,6 +14,8 @@ import { DatabaseModule } from './database/database.module'
 import { LikesModule } from './likes/likes.module'
 import { LogsModule } from './logs/logs.module'
 import { UserLoginLogsModule } from './user-login-logs/user-login-logs.module'
+import { AuthGuard } from './auth/auth.guard'
+import { RedisModule } from './redis/redis.module'
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { UserLoginLogsModule } from './user-login-logs/user-login-logs.module'
     AuthModule,
     VideosModule,
     DatabaseModule,
+    RedisModule,
     LikesModule,
     LogsModule,
     UserLoginLogsModule
@@ -42,6 +45,9 @@ import { UserLoginLogsModule } from './user-login-logs/user-login-logs.module'
     }, {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter
+    }, {
+      provide: APP_GUARD,
+      useClass: AuthGuard
     }
   ]
 })

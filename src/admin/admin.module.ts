@@ -6,7 +6,7 @@ import { AuthModule } from 'src/auth/auth.module'
 import { UsersModule } from 'src/users/users.module'
 
 @Module({
-  imports: [DatabaseModule, AuthModule, UsersModule],
+  imports: [DatabaseModule, AuthModule, UsersModule, DatabaseModule],
   controllers: [AdminController],
   exports: [AdminService],
   providers: [AdminService]
