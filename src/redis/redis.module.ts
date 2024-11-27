@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common'
 import { Redis } from 'ioredis'
 import { RedisService } from './redis.service'
+import { dbConfig } from 'src/common/config'
 
 @Global()
 @Module({
@@ -9,7 +10,7 @@ import { RedisService } from './redis.service'
       provide: 'REDIS_CLIENT',
       useFactory: () => {
         return new Redis({
-          host: 'localhost',
+          host: dbConfig.host,
           port: 6379,
           password: ''
         })
