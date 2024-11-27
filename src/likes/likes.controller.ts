@@ -22,7 +22,6 @@ export class LikesController {
     @Headers('token') token: string
   ) {
     const openid = await this.authService.token2openid(token)
-    console.log(openid)
     if (openid) {
       const user = (await this.databaseService.query<User[]>('SELECT * FROM users WHERE openid = ?', [openid]))[0]
       if (user) {

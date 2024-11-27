@@ -189,7 +189,6 @@ export class VideosService {
           })
         })
         .on('error', (e) => {
-          console.log(e, videoPath)
           reject({
             status: false
           })

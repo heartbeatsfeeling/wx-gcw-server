@@ -71,7 +71,6 @@ export class AdminService {
         message: '用户不存在或密码错误'
       }
     }
-    console.log('user', user)
     const payload = { email: user.email, userId: user.id, createTime: user.createTime, updatedTime: user.updatedTime }
     return {
       status: true,
