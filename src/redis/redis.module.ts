@@ -12,7 +12,7 @@ import { dbConfig } from 'src/common/config'
         return new Redis({
           host: dbConfig.host,
           port: 6379,
-          password: ''
+          password: 'xtdgjhch1016'
         })
       }
     },
