@@ -17,15 +17,30 @@ export class AdminLoginDto {
     @IsNotEmpty()
     captchaText: string
 }
-export class RegisterDto extends AdminLoginDto {
+export class RegisterDto {
     @IsString()
     @IsNotEmpty()
-    captchaId: string
+    email: string
+
+    @IsString()
+    @IsNotEmpty()
+    password: string
 
     @IsString()
     @IsNotEmpty()
     captchaText: string
 }
 
-export class RestPawwrodDto extends AdminLoginDto {
+export class RestPasswrodDto {
+    @IsString()
+    @IsNotEmpty()
+    email: string
+
+    @IsString()
+    @IsNotEmpty()
+    password: string
+
+    @IsString()
+    @IsNotEmpty()
+    captchaText: string
 }

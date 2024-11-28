@@ -1,74 +1,62 @@
 import { Injectable } from '@nestjs/common'
 import { DatabaseService } from 'src/database/database.service'
 import { AdminUser } from 'types/db'
-import { randomUUID } from 'node:crypto'
-import * as svgCaptcha from 'svg-captcha'
-import { RedisService } from 'src/redis/redis.service'
-import { RegisterDto } from 'src/common/dto/admin.dto'
+import { RegisterDto, RestPasswrodDto } from 'src/common/dto/admin.dto'
 import { JwtService } from '@nestjs/jwt'
+import { AuthService } from 'src/auth/auth.service'
 @Injectable()
 export class AdminService {
   constructor (
     private readonly databaseService: DatabaseService,
-    private readonly redisService: RedisService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly authService: AuthService
   ) {}
 
   /**
    * 验证用户名是否可用
    */
-  async checkAvailability (userName: string) {
+  async checkAvailability (email: string) {
     const sql = `
       SELECT
         *
       FROM
         admin_users
       WHERE
-        admin_users.name = ?
+        email = ?
     `
-    return (await this.databaseService.query<AdminUser[]>(sql, [userName])).length === 0
+    return (await this.databaseService.query<AdminUser[]>(sql, [email])).length === 0
   }
 
-  /**
-   * 生成验证码
-   */
-  async generateCaptcha () {
-    const captchaId = randomUUID()
-    const captcha = svgCaptcha.create({
-      size: 4,
-      noise: 2,
-      width: 90,
-      color: true
-    })
-    await this.redisService.set(`captcha:${captchaId}`, captcha.text, 300) // 存储验证码，有效期 300 秒
-    return {
-      svg: captcha.data,
-      id: captchaId
-    }
-  }
-
-  async findAdminUser (email: string, password: string): Promise<null | AdminUser> {
+  async findAdminUser (email: string): Promise<null | AdminUser> {
     const sql = `
         SELECT
           id,
           email,
+          password,
           UNIX_TIMESTAMP(create_time) * 1000 as createTime,
           UNIX_TIMESTAMP(updated_time) * 1000 as updatedTime
         FROM
           admin_users
         WHERE
-          email = ? AND password = ?
+          email = ?
       `
-    const user = await this.databaseService.query<AdminUser[]>(sql, [email, password])
+    const user = await this.databaseService.query<AdminUser[]>(sql, [email])
     return user?.[0]
   }
 
-  async adminLogin (email: string, password: string) {
-    const user = await this.findAdminUser(email, password)
+  async adminLogin (email: string, plainPassword: string) {
+    const user = await this.findAdminUser(email)
     if (!user) {
       return {
         status: false,
-        message: '用户不存在或密码错误'
+        message: '用户不存在'
+      }
+    }
+    const isPasswordValid = await this.authService.validatePassword(plainPassword, user.password)
+    if (!isPasswordValid) {
+      return {
+        status: false,
+        message: '密码不正确'
       }
     }
     const payload = { email: user.email, userId: user.id, createTime: user.createTime, updatedTime: user.updatedTime }
@@ -78,15 +66,25 @@ export class AdminService {
     }
   }
 
-  /**
-   * 校验验证码是否有效
-   */
-  async validCaptcha (captchaId: string, captchaText: string) {
-    const res = await this.redisService.get(`captcha:${captchaId}`)
-    return res?.toLowerCase() === captchaText?.toLowerCase()
+  async updateUser (params: RestPasswrodDto) {
+    const password = await this.authService.hashPassword(params.password)
+    const sql = `
+      UPDATE
+        admin_users
+      SET
+        password = ?,
+        updated_time = CURRENT_TIMESTAMP
+      WHERE
+        email = ?
+    `
+    const res = await this.databaseService.query(sql, [password, params.email])
+    return res.changedRows >= 1
   }
 
-  register (params: RegisterDto) {
-    console.log(params)
+  async insertUser (params: RegisterDto) {
+    const password = await this.authService.hashPassword(params.password)
+    const sql = 'INSERT INTO `admin_users` (`email`, `password`) VALUES (?, ?)'
+    const res = await this.databaseService.query(sql, [params.email, password])
+    return res.changedRows >= 1
   }
 }

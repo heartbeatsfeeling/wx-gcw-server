@@ -1,16 +1,21 @@
 import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Query, Req, Res } from '@nestjs/common'
 import { AuthService } from 'src/auth/auth.service'
 import { Public } from 'src/common/decorators/public.decorator'
-import { AdminLoginDto, RegisterDto } from 'src/common/dto/admin.dto'
+import { AdminLoginDto, RegisterDto, RestPasswrodDto } from 'src/common/dto/admin.dto'
 import { CustomRequest } from 'types/request'
 import { Response } from 'express'
 import { AdminService } from './admin.service'
+import { CaptchaService } from 'src/captcha/captcha.service'
+import { MailService } from 'src/mail/mail.service'
+import { randomUUID } from 'node:crypto'
 
 @Controller('admin')
 export class AdminController {
   constructor (
     private readonly authService: AuthService,
-    private readonly adminService: AdminService
+    private readonly adminService: AdminService,
+    private readonly captchaService: CaptchaService,
+    private readonly mailService: MailService
   ) {}
 
   @Public()
@@ -20,7 +25,7 @@ export class AdminController {
     @Body() { email, password, captchaId, captchaText }: AdminLoginDto,
     @Res({ passthrough: true }) response: Response
   ) {
-    const captcha = await this.adminService.validCaptcha(captchaId, captchaText)
+    const captcha = await this.captchaService.validateCaptcha(captchaId, captchaText)
     if (captcha) {
       const user = await this.adminService.adminLogin(email, password)
       if (user.status) {
@@ -85,7 +90,14 @@ export class AdminController {
   async register (
     @Body() body: RegisterDto
   ) {
-    return this.adminService.register(body)
+    if (!this.checkAvailability(body.email)) {
+      throw new HttpException('邮箱地址已经存在', HttpStatus.BAD_GATEWAY)
+    }
+    if (this.captchaService.validateCaptcha(body.email, body.captchaText)) {
+      return this.adminService.insertUser(body)
+    } else {
+      throw new HttpException('验证码错误', HttpStatus.BAD_GATEWAY)
+    }
   }
 
   /**
@@ -94,18 +106,43 @@ export class AdminController {
   @Public()
   @Get('captcha')
   captcha () {
-    return this.adminService.generateCaptcha()
+    return this.captchaService.generateCaptcha(randomUUID())
   }
 
   /**
-   * 找回用户密码接口 admin/reest-password
+   * 发送验证码到邮件接口 /api/admin/send-captcha2email
    */
   @Public()
-  @Post('reest-password')
+  @Get('send-captcha2email')
+  async sendCaptcha2Email (
+    @Query('email') email: string
+  ) {
+    if (email.includes('@')) {
+      const res = await this.captchaService.generateCaptcha(email)
+      // this.mailService.sendMail(
+      //   email,
+      //   '验证码，有效期为5分钟',
+      //   `找回密码验证码为：${res.text}`
+      // )
+      console.log(res.text)
+      return true
+    }
+    throw new HttpException('发送邮件出错', HttpStatus.BAD_GATEWAY)
+  }
+
+  /**
+   * 找回用户密码接口 admin/reset-password
+   */
+  @Public()
+  @Post('reset-password')
   @HttpCode(200)
   resetPassword (
-    @Body() body: RegisterDto
+    @Body() body: RestPasswrodDto
   ) {
-    console.log(body)
+    if (this.captchaService.validateCaptcha(body.email, body.captchaText)) {
+      return this.adminService.updateUser(body)
+    } else {
+      throw new HttpException('验证码错误', HttpStatus.BAD_GATEWAY)
+    }
   }
 }

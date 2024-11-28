@@ -5,6 +5,10 @@ export const dbConfig = {
   host: process.env.DB_HOST,
   password: process.env.DB_PASSWORD
 }
+export const redisConfig = {
+  host: process.env.REDIS_HOST,
+  password: process.env.REDIS_PASSWORD
+}
 export const jwtConfig = {
   secret: process.env.SECRET,
   expiresIn: `${process.env.JWT_EXPIRES}m`

@@ -30,6 +30,7 @@ export interface AdminUser {
   email: string
   createTime: number
   updatedTime: number
+  password: stirng
 }
 
 export interface Like {

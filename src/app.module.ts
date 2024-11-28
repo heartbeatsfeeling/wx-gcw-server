@@ -16,6 +16,9 @@ import { LogsModule } from './logs/logs.module'
 import { UserLoginLogsModule } from './user-login-logs/user-login-logs.module'
 import { AuthGuard } from './auth/auth.guard'
 import { RedisModule } from './redis/redis.module'
+import { MailModule } from './mail/mail.module';
+import { CaptchaService } from './captcha/captcha.service';
+import { CaptchaModule } from './captcha/captcha.module';
 
 @Module({
   imports: [
@@ -31,7 +34,9 @@ import { RedisModule } from './redis/redis.module'
     RedisModule,
     LikesModule,
     LogsModule,
-    UserLoginLogsModule
+    UserLoginLogsModule,
+    MailModule,
+    CaptchaModule
   ],
   controllers: [AppController],
   providers: [
@@ -48,7 +53,7 @@ import { RedisModule } from './redis/redis.module'
     }, {
       provide: APP_GUARD,
       useClass: AuthGuard
-    }
+    }, CaptchaService
   ]
 })
 export class AppModule {}
