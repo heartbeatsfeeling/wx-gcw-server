@@ -139,10 +139,12 @@ export class AdminController {
   resetPassword (
     @Body() body: RestPasswrodDto
   ) {
-    if (this.captchaService.validateCaptcha(body.email, body.captchaText)) {
-      return this.adminService.updateUser(body)
-    } else {
-      throw new HttpException('验证码错误', HttpStatus.BAD_GATEWAY)
-    }
+    return this.adminService.updateUser(body)
   }
+
+  /**
+   * 用户列表
+   */
+  @Get()
+  findAllUser () {}
 }
