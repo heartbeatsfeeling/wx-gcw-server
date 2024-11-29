@@ -16,9 +16,13 @@ import { LogsModule } from './logs/logs.module'
 import { UserLoginLogsModule } from './user-login-logs/user-login-logs.module'
 import { AuthGuard } from './auth/auth.guard'
 import { RedisModule } from './redis/redis.module'
-import { MailModule } from './mail/mail.module';
-import { CaptchaService } from './captcha/captcha.service';
-import { CaptchaModule } from './captcha/captcha.module';
+import { MailModule } from './mail/mail.module'
+import { CaptchaService } from './captcha/captcha.service'
+import { CaptchaModule } from './captcha/captcha.module'
+import { RolesModule } from './roles/roles.module'
+import { PermissionController } from './permission/permission.controller'
+import { PermissionModule } from './permission/permission.module'
+import { PermissionService } from './permission/permission.service'
 
 @Module({
   imports: [
@@ -36,9 +40,11 @@ import { CaptchaModule } from './captcha/captcha.module';
     LogsModule,
     UserLoginLogsModule,
     MailModule,
-    CaptchaModule
+    CaptchaModule,
+    RolesModule,
+    PermissionModule
   ],
-  controllers: [AppController],
+  controllers: [AppController, PermissionController],
   providers: [
     AppService,
     {
@@ -53,7 +59,7 @@ import { CaptchaModule } from './captcha/captcha.module';
     }, {
       provide: APP_GUARD,
       useClass: AuthGuard
-    }, CaptchaService
+    }, CaptchaService, PermissionService
   ]
 })
 export class AppModule {}
