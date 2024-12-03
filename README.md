@@ -3,14 +3,14 @@
 ## 技术栈
   nestjs + mysql + redis
 ## 环境设置（重要数据不配置到.env文件里，需要环境变量里面）
-+ win
++ macOS or Linux
   ```bash
     export MAIL_USER=test #邮件地址
     export MAIL_PASS=test #邮件授权码
     export WX_APPID=test #小程序ID（微信小程序端使用，web不需要）
     export WX_SE=test #小程序secret（微信小程序端使用，web不需要）
   ```
-+ macOS or Linux
++ win
   ```bash
     set MAIL_USER=test #邮件地址
     set MAIL_PASS=test #邮件授权码
