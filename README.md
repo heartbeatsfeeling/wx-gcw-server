@@ -1,7 +1,7 @@
 # 微信小程序后端环境
 > 给我的微信小程序提供登录、视频相关api和视频资源管理后端
 ## 技术栈
-  nestjs + mysql
+  nestjs + mysql + redis
 ## 环境设置
 + 因为ffmpeg-static有权限问题 ，ubuntu之类的云服务器需要自己安装ffmpeg。win/mac不需要
   ```bash
@@ -28,16 +28,8 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
+# 功能
+- [x] 登录
+- [x] 注册
+- [x] 验证码
+- [ ] 权限
