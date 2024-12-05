@@ -2,6 +2,7 @@ import { Controller, Post, HttpCode, HttpStatus, Body, Headers, HttpException } 
 import { AuthService } from './auth.service'
 import { UsersService } from 'src/users/users.service'
 import { UserLoginLogsService } from 'src/user-login-logs/user-login-logs.service'
+import { Public } from 'src/common/decorators/public.decorator'
 
 @Controller('auth')
 export class AuthController {
@@ -11,6 +12,7 @@ export class AuthController {
     private userLoginLogsService: UserLoginLogsService
   ) {}
 
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Post('wx-login')
   async wxLogin (
