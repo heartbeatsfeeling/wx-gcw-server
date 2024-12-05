@@ -3,6 +3,7 @@ import { LikesService } from './likes.service'
 import { AuthService } from 'src/auth/auth.service'
 import { User } from 'types/db'
 import { DatabaseService } from 'src/database/database.service'
+import { Public } from 'src/common/decorators/public.decorator'
 
 @Controller('likes')
 export class LikesController {
@@ -32,6 +33,7 @@ export class LikesController {
     return []
   }
 
+  @Public()
   @Post()
   @HttpCode(200)
   async like (
@@ -49,6 +51,7 @@ export class LikesController {
     return false
   }
 
+  @Public()
   @Delete()
   async unlike (
     @Body('id', ParseIntPipe) id: number,
