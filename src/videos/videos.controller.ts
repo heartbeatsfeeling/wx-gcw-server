@@ -10,6 +10,7 @@ import { randomUUID } from 'crypto'
 import { AuthService } from 'src/auth/auth.service'
 import { DatabaseService } from 'src/database/database.service'
 import { User } from 'types/db'
+import { Public } from 'src/common/decorators/public.decorator'
 
 @Controller('videos')
 export class VideosController {
@@ -21,6 +22,7 @@ export class VideosController {
   ) {}
 
   @Get()
+  @Public()
   async getVideoList (
     @Query() query: VideoTypeDtoOptional
   ) {
@@ -29,11 +31,12 @@ export class VideosController {
   }
 
   @Get(':id')
+  @Public()
   async getVideoDetail (
     @Param('id') id: number,
     @Headers('token') token?: string
   ) {
-    const openid = await this.authService.token2openid(token)
+    const openid = await this.authService.token2openid(token || '')
     let userId: undefined | number
     if (openid) {
       const user = (await this.databaseService.query<User[]>('SELECT * FROM users WHERE openid = ?', [openid]))[0]

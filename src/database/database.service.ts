@@ -23,4 +23,8 @@ export class DatabaseService {
     const [results] = await this.pool.execute(sql, params)
     return results as T
   }
+
+  getConnection () {
+    return this.pool.getConnection()
+  }
 }

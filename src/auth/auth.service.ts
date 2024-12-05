@@ -35,7 +35,7 @@ export class AuthService {
     })
   }
 
-  async getAdminJWTPayload (token: string): Promise<Omit<AdminUserPayLoad, 'iat' | 'exp'>> {
+  async getAdminJWTPayload (token: string): Promise<null | Omit<AdminUserPayLoad, 'iat' | 'exp'>> {
     const payload = await this.jwtVerify<AdminUserPayLoad>(token)
     if (payload) {
       return {

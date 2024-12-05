@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import * as nodemailer from 'nodemailer'
+import { mailConfig } from 'src/common/config'
 
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter
-  private user = 'xtdgjhch@163.com'
+  private user = mailConfig.user
   constructor () {
     // 创建邮件发送器
     this.transporter = nodemailer.createTransport({
@@ -13,7 +14,7 @@ export class MailService {
       secure: true,
       auth: {
         user: this.user,
-        pass: ''
+        pass: mailConfig.pass
       }
     })
   }
@@ -29,10 +30,10 @@ export class MailService {
     }
     try {
       await this.transporter.sendMail(mailOptions)
-      console.log(`Email sent to ${to}`)
-    } catch (error) {
-      console.error('Failed to send email:', error)
-      throw new Error('Failed to send email')
+    } catch (err: any) {
+      throw new HttpException(err.message, HttpStatus.BAD_GATEWAY)
+    } finally {
+      //
     }
   }
 }

@@ -22,9 +22,9 @@ export class AuthController {
       return await this.authService.openid2Token(openid)
     } else {
       const res = await this.authService.wxLogin(code)
-      this.usersService.createUser(res.openid)
-      this.userLoginLogsService.insert(res.openid)
-      if (res.status) {
+      if (res.status && res.openid) {
+        this.usersService.createUser(res.openid)
+        this.userLoginLogsService.insert(res.openid)
         return await this.authService.openid2Token(res.openid)
       } else {
         throw new HttpException('Auth error', HttpStatus.NOT_IMPLEMENTED)

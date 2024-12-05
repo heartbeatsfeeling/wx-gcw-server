@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Query, Req, Res } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Post, Query, Req, Res } from '@nestjs/common'
 import { AuthService } from 'src/auth/auth.service'
 import { Public } from 'src/common/decorators/public.decorator'
 import { AdminLoginDto, RegisterDto, RestPasswrodDto } from 'src/common/dto/admin.dto'
@@ -8,6 +8,7 @@ import { AdminService } from './admin.service'
 import { CaptchaService } from 'src/captcha/captcha.service'
 import { MailService } from 'src/mail/mail.service'
 import { randomUUID } from 'node:crypto'
+import { supportRegister } from 'src/common/config'
 
 @Controller('admin')
 export class AdminController {
@@ -16,7 +17,8 @@ export class AdminController {
     private readonly adminService: AdminService,
     private readonly captchaService: CaptchaService,
     private readonly mailService: MailService
-  ) {}
+  ) {
+  }
 
   @Public()
   @Post('login')
@@ -34,7 +36,7 @@ export class AdminController {
         })
         return true
       } else {
-        throw new HttpException(user.message, HttpStatus.OK)
+        throw new HttpException(user.message || 'Err', HttpStatus.OK)
       }
     } else {
       throw new HttpException('验证码过期或错误', HttpStatus.OK)
@@ -51,20 +53,31 @@ export class AdminController {
   }
 
   @Public()
+  @Get('/users')
+  async findAdminUsers () {
+    return this.adminService.findAdminUsers()
+  }
+
+  @Public()
   @Get('userInfo')
   async getAdminUserInfo (@Req() request: CustomRequest) {
-    const message = '获取用户信息失败'
+    const data = {
+      supportRegister
+    }
     try {
       const payload = await this.authService.getAdminJWTPayload(request.cookies.token)
       if (payload) {
-        return payload
-      } else {
-        throw new HttpException(message, HttpStatus.OK)
+        return {
+          user: payload,
+          ...data
+        }
       }
     } catch {
 
     }
-    throw new HttpException(message, HttpStatus.OK)
+    return {
+      ...data
+    }
   }
 
   /**
@@ -93,11 +106,24 @@ export class AdminController {
     if (!this.checkAvailability(body.email)) {
       throw new HttpException('邮箱地址已经存在', HttpStatus.BAD_GATEWAY)
     }
-    if (this.captchaService.validateCaptcha(body.email, body.captchaText)) {
-      return this.adminService.insertUser(body)
+    if (await this.captchaService.validateCaptcha(body.email, body.captchaText)) {
+      return this.adminService.addUser(body)
     } else {
       throw new HttpException('验证码错误', HttpStatus.BAD_GATEWAY)
     }
+  }
+
+  /**
+   * 用户注册接口 admin/register
+   */
+  @Public()
+  @Post('update-roles/:id')
+  @HttpCode(200)
+  async updateRoles (
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: RegisterDto
+  ) {
+    return this.adminService.updateRoles({ id, roles: body.roles })
   }
 
   /**
@@ -105,8 +131,9 @@ export class AdminController {
    */
   @Public()
   @Get('captcha')
-  captcha () {
-    return this.captchaService.generateCaptcha(randomUUID())
+  async captcha () {
+    const { text: _, ...other } = await this.captchaService.generateCaptcha(randomUUID())
+    return other
   }
 
   /**
@@ -118,16 +145,19 @@ export class AdminController {
     @Query('email') email: string
   ) {
     if (email.includes('@')) {
-      const res = await this.captchaService.generateCaptcha(email)
-      // this.mailService.sendMail(
-      //   email,
-      //   '验证码，有效期为5分钟',
-      //   `找回密码验证码为：${res.text}`
-      // )
-      console.log(res.text)
-      return true
+      try {
+        const res = await this.captchaService.generateCaptcha(email)
+        await this.mailService.sendMail(
+          email,
+          '验证码，有效期为5分钟',
+          `找回密码验证码为：${res.text}`
+        )
+        return true
+      } catch (err: any) {
+        throw new HttpException(`发送邮件失败: ${err.message}`, HttpStatus.BAD_GATEWAY)
+      }
     }
-    throw new HttpException('发送邮件出错', HttpStatus.BAD_GATEWAY)
+    throw new HttpException('邮箱格式不正确', HttpStatus.BAD_GATEWAY)
   }
 
   /**
@@ -136,11 +166,11 @@ export class AdminController {
   @Public()
   @Post('reset-password')
   @HttpCode(200)
-  resetPassword (
+  async resetPassword (
     @Body() body: RestPasswrodDto
   ) {
-    if (this.captchaService.validateCaptcha(body.email, body.captchaText)) {
-      return this.adminService.updateUser(body)
+    if (await this.captchaService.validateCaptcha(body.email, body.captchaText)) {
+      return this.adminService.resetPassword(body)
     } else {
       throw new HttpException('验证码错误', HttpStatus.BAD_GATEWAY)
     }

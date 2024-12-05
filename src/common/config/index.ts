@@ -14,13 +14,20 @@ export const jwtConfig = {
   expiresIn: `${process.env.JWT_EXPIRES}m`
 }
 
+/**
+ * 发送邮件相关配置
+ */
+export const mailConfig = {
+  user: process.env.MAIL_USER,
+  pass: process.env.MAIL_PASS
+}
 // 上传文件存放位置
-export const uploadFilePath = process.env.VIDEO_UPLOAD_PATH
-export const coverImageFilePath = process.env.VIDEO_COVER_IMAGE_UPLOAD_PATH
+export const uploadFilePath = process.env.VIDEO_UPLOAD_PATH!
+export const coverImageFilePath = process.env.VIDEO_COVER_IMAGE_UPLOAD_PATH!
 
 // 下载文件位置，和上传位置不同，因为用了Nginx代理
-export const videoStaticPath = process.env.VIDEO_VIEW_PATH
-export const coverImageStaticPath = process.env.VIDEO_COVER_IMAGE_VIEW_PATH
+export const videoStaticPath = process.env.VIDEO_VIEW_PATH!
+export const coverImageStaticPath = process.env.VIDEO_COVER_IMAGE_VIEW_PATH!
 
 /**
  * 上传文件最大限制200m
@@ -38,3 +45,5 @@ export const isPublicKey = 'isPublic'
 export const dateFormat = {
   format: process.env.DATE_FORMAT
 }
+
+export const supportRegister = process.env.SUPPORT_REGISTER === 'true'

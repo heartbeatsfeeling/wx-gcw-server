@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { DatabaseService } from 'src/database/database.service'
 import { AdminUser } from 'types/db'
-import { RegisterDto, RestPasswrodDto } from 'src/common/dto/admin.dto'
 import { JwtService } from '@nestjs/jwt'
 import { AuthService } from 'src/auth/auth.service'
+import { ResultSetHeader } from 'mysql2'
 @Injectable()
 export class AdminService {
   constructor (
@@ -27,25 +27,30 @@ export class AdminService {
     return (await this.databaseService.query<AdminUser[]>(sql, [email])).length === 0
   }
 
-  async findAdminUser (email: string): Promise<null | AdminUser> {
+  async findAdminUsers (email?: string): Promise<AdminUser[]> {
     const sql = `
         SELECT
-          id,
-          email,
-          password,
-          UNIX_TIMESTAMP(create_time) * 1000 as createTime,
-          UNIX_TIMESTAMP(updated_time) * 1000 as updatedTime
+          admin_users.id,
+          admin_users.email,
+          UNIX_TIMESTAMP(admin_users.create_time) * 1000 as createTime,
+          UNIX_TIMESTAMP(admin_users.updated_time) * 1000 as updatedTime,
+          GROUP_CONCAT(admin_users_roles.admin_user_id) as roles
         FROM
           admin_users
+        LEFT JOIN
+          admin_users_roles
+        ON
+          admin_users.id = admin_users_roles.admin_user_id
         WHERE
-          email = ?
+          admin_users.id = COALESCE(?, admin_users.id)
+        GROUP BY
+          admin_users.id
       `
-    const user = await this.databaseService.query<AdminUser[]>(sql, [email])
-    return user?.[0]
+    return this.databaseService.query<AdminUser[]>(sql, [email ?? null])
   }
 
   async adminLogin (email: string, plainPassword: string) {
-    const user = await this.findAdminUser(email)
+    const user = (await this.databaseService.query<(AdminUser & { password: string })[]>('SELECT * FROM `admin_users` WHERE email = ?', [email]))[0]
     if (!user) {
       return {
         status: false,
@@ -66,8 +71,71 @@ export class AdminService {
     }
   }
 
-  async updateUser (params: RestPasswrodDto) {
-    const password = await this.authService.hashPassword(params.password)
+  async addUser (body: { password: string, email: string, roles?: number[] }) {
+    const connection = await this.databaseService.getConnection()
+    try {
+      await connection.beginTransaction()
+      const password = await this.authService.hashPassword(body.password)
+      const sql = 'INSERT INTO `admin_users` (`email`, `password`) VALUES (?, ?)'
+      const [addUserRes] = await connection.query<ResultSetHeader>(sql, [body.email, password])
+      if (body.roles?.length) {
+        const roles = body.roles.map(role => `(${addUserRes.insertId}, ${role})`).join(', ')
+        await connection.query<ResultSetHeader>(
+          `INSERT INTO admin_users_roles (admin_user_id, role_id) VALUES ${roles}`
+        )
+      }
+      await connection.commit()
+      return addUserRes.affectedRows >= 1
+    } catch (err: any) {
+      await connection.rollback()
+      throw new HttpException(err.message, HttpStatus.BAD_GATEWAY)
+    } finally {
+      connection.release()
+    }
+  }
+
+  async updateRoles (body: { id: number, roles?: number[] }) {
+    const connection = await this.databaseService.getConnection()
+    try {
+      await connection.beginTransaction()
+      const [res] = await connection.query<ResultSetHeader>(
+        `
+          UPDATE
+            admin_users
+          SET
+            updated_time = CURRENT_TIMESTAMP
+          WHERE
+            email = ?
+        `,
+        [body.id]
+      )
+      await connection.query<ResultSetHeader>(
+        `
+          DELETE FROM
+            admin_users_roles
+          WHERE
+            admin_user_id = ?
+        `,
+        [body.id]
+      )
+      if (body.roles?.length) {
+        const roles = body.roles.map(role => `(${body.id}, ${role})`).join(', ')
+        await connection.query<ResultSetHeader>(
+          `INSERT INTO admin_users_roles (admin_user_id, role_id) VALUES ${roles}`
+        )
+      }
+      await connection.commit()
+      return res.affectedRows >= 1
+    } catch (err: any) {
+      await connection.rollback()
+      throw new HttpException(err.message, HttpStatus.BAD_GATEWAY)
+    } finally {
+      connection.release()
+    }
+  }
+
+  async resetPassword (body: { password: string, email: string }) {
+    const password = await this.authService.hashPassword(body.password)
     const sql = `
       UPDATE
         admin_users
@@ -77,14 +145,7 @@ export class AdminService {
       WHERE
         email = ?
     `
-    const res = await this.databaseService.query(sql, [password, params.email])
-    return res.changedRows >= 1
-  }
-
-  async insertUser (params: RegisterDto) {
-    const password = await this.authService.hashPassword(params.password)
-    const sql = 'INSERT INTO `admin_users` (`email`, `password`) VALUES (?, ?)'
-    const res = await this.databaseService.query(sql, [params.email, password])
+    const res = await this.databaseService.query(sql, [password, body.email])
     return res.changedRows >= 1
   }
 }

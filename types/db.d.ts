@@ -30,7 +30,6 @@ export interface AdminUser {
   email: string
   createTime: number
   updatedTime: number
-  password: stirng
 }
 
 export interface Like {
@@ -54,4 +53,20 @@ export interface UserLoginLog {
   userId: number
   openid: string
   createTime: string
+}
+
+export interface Role {
+  id: number
+  name: string
+  description: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface Permission {
+  id: number
+  name: string
+  description: string
+  createdAt: number
+  updatedAt: number
 }

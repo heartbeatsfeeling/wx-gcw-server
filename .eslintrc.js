@@ -24,6 +24,13 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     'no-useless-constructor': 'off',
     'indent': ['error', 2, { 'SwitchCase': 1, 'ignoredNodes': ['PropertyDefinition'] }],
-    'prefer-promise-reject-errors': 'off'
+    'prefer-promise-reject-errors': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ]
   },
 };

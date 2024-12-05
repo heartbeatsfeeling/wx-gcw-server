@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator'
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class AdminLoginDto {
     @IsString()
@@ -29,6 +29,11 @@ export class RegisterDto {
     @IsString()
     @IsNotEmpty()
     captchaText: string
+
+    @IsOptional()
+    @IsArray()
+    @IsNumber(undefined, { each: true })
+    roles?: number[]
 }
 
 export class RestPasswrodDto {
@@ -43,4 +48,15 @@ export class RestPasswrodDto {
     @IsString()
     @IsNotEmpty()
     captchaText: string
+}
+
+export class UpdateRolesDto {
+    @IsString()
+    @IsNotEmpty()
+    id: number
+
+    @IsOptional()
+    @IsArray()
+    @IsNumber(undefined, { each: true })
+    roles?: number[]
 }
