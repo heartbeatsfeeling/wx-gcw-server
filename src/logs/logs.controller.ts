@@ -4,6 +4,7 @@ import { AuthService } from 'src/auth/auth.service'
 import { CustomRequest } from 'types/request'
 import { DatabaseService } from 'src/database/database.service'
 import { User } from 'types/db'
+import { Public } from 'src/common/decorators/public.decorator'
 
 @Controller('logs')
 export class LogsController {
@@ -18,6 +19,7 @@ export class LogsController {
     return this.logsService.findAll()
   }
 
+  @Public()
   @Post()
   @HttpCode(200)
   async addLog (
