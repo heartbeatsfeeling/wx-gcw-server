@@ -32,55 +32,24 @@ export class RolesService {
     return await this.databaseService.query<Role[]>(sql, [id ?? null])
   }
 
-  async add (body: { name: string, description: string, permissions?: number[] }) {
+  async update (body: { id: number, description?: string, permissions?: number[] }) {
     const connection = await this.databaseService.getConnection()
     try {
       await connection.beginTransaction()
-      const [res] = await connection.query<ResultSetHeader>(
-        'INSERT INTO `roles` (`name`, `description`) VALUES (?, ?)',
-        [body.name, body.description]
-      )
-      const roleId = res.insertId
-      const permissions = (body.permissions || []).map(d => `(${roleId}, ${d})`).join(', ')
-      if (body.permissions?.length) {
-        await connection.query<ResultSetHeader>(
-          `INSERT INTO roles_permissions (role_id, permission_id) VALUES ${permissions}`
-        )
-      }
-      await connection.commit()
-      return res.affectedRows >= 1
-    } catch (err: any) {
-      await connection.rollback()
-      throw new HttpException(err.message, HttpStatus.BAD_GATEWAY)
-    } finally {
-      connection.release()
-    }
-  }
-
-  async delete (id: number) {
-    const sql = 'DELETE FROM `roles` WHERE `id` = ?'
-    const res = await this.databaseService.query<ResultSetHeader>(sql, [id])
-    return res.affectedRows >= 1
-  }
-
-  async update (body: { id: number, name: string, description: string, permissions?: number[] }) {
-    const connection = await this.databaseService.getConnection()
-    try {
-      await connection.beginTransaction()
+      const defaultRole = (await this.databaseService.query<Role[]>('SELECT * FROM `roles` WHERE `id` = ?', [body.id]))[0]
       const [res] = await connection.query<ResultSetHeader>(
         `
           UPDATE
             roles
           SET
-            name = ?,
             description = ?,
             updated_at = CURRENT_TIMESTAMP
           WHERE
             id = ?
         `,
-        [body.name, body.description, body.id]
+        [body.description ?? defaultRole.description, body.id]
       )
-      if (res.affectedRows >= 1) {
+      if (res.affectedRows >= 1 && defaultRole) {
         await connection.query<ResultSetHeader>(
           'DELETE FROM roles_permissions WHERE role_id = ?',
           [body.id]
@@ -97,7 +66,6 @@ export class RolesService {
         throw new HttpException('数据不存在', HttpStatus.BAD_GATEWAY)
       }
     } catch (err: any) {
-      console.log('err', err)
       await connection.rollback()
       throw new HttpException(err.message, HttpStatus.BAD_GATEWAY)
     } finally {

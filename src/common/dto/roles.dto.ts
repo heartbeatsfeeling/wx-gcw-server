@@ -1,11 +1,9 @@
 import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export class RoleBaseDto {
+  @IsOptional()
   @IsString()
-  name: string
-
-  @IsString()
-  description: string
+  description?: string
 
   @IsOptional()
   @IsArray()

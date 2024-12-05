@@ -18,6 +18,7 @@ export class LikesController {
     return this.likesService.findAll()
   }
 
+  @Public()
   @Get('user')
   async findByUser (
     @Headers('token') token: string

@@ -1,6 +1,6 @@
 
 @baseUrl = http://127.0.0.1:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6ImFkbWluIiwidXNlcklkIjoxLCJpYXQiOjE3MzA5NTczMTIsImV4cCI6MTczMTA0MzcxMn0.GCX_zra2o4T22b3kuDPOXEgwayDLSjaqy0rzwG4y9dA
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IjQ5OTk1NDM2N0BxcS5jb20iLCJ1c2VySWQiOjIsImlhdCI6MTczMzQwNjAwNSwiZXhwIjoxNzMzNDkyNDA1fQ.o8PlDVwg9ei3fBC4IXNA1xqsB54ftonRoW3eTsy6L3Y
 
 @wxToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcGVuaWQiOiJvV09PZjdTQ0pqZGw0dkxsTlV0S3hXaUZ2OUxZIiwiaWF0IjoxNzMxOTExMzk5LCJleHAiOjE3MzE5OTc3OTl9.DB80pR-2s_PD5VupNqV8AgspB6F0TUiBCWqjVv4wn38
 ###  登录
@@ -8,10 +8,10 @@ POST {{baseUrl}}/api/admin/login HTTP/1.1
 content-type: application/json
 
 {
-    "email": "aaa@qq.com",
-    "password": "123456",
-    "captchaId": "36f8f16b-a225-431f-81c5-7cd9f0a6e38e",
-    "captchaText": "Wmuy"
+    "email": "499954367@qq.com",
+    "password": "xtdgjhch1016",
+    "captchaId": "3060ab0c-dbfa-4421-8744-40c6f30558a8",
+    "captchaText": "limw"
 }
 
 ### 获取 当前登录 admin 用户信息
@@ -87,31 +87,16 @@ Cookie: token={{token}}
 GET {{baseUrl}}/api/roles HTTP/1.1
 Cookie: token={{token}}
 
-###  add roles
-POST {{baseUrl}}/api/roles HTTP/1.1
+###  update roles
+PUT {{baseUrl}}/api/roles/3 HTTP/1.1
 Content-Type: application/json
 Cookie: token={{wxToken}}
 
 {
     "name": "admin",
-    "description": "管理员",
-    "permissions": [15, 16]
-}
-
-###  update roles
-PUT {{baseUrl}}/api/roles/51 HTTP/1.1
-Content-Type: application/json
-Cookie: token={{wxToken}}
-
-{
-    "name": "user",
     "description": "普通用户",
     "permissions": []
 }
-
-### 删除role
-DELETE {{baseUrl}}/api/roles/3 HTTP/1.1
-Cookie: token={{token}}
 
 ### 获取所有permissions
 GET {{baseUrl}}/api/permissions HTTP/1.1
