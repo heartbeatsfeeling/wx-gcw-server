@@ -1,8 +1,8 @@
+import { Role } from 'src/enums'
+
 export interface AdminUserPayLoad {
-  email: string
   userId: number
-  createTime: number
-  updatedTime: number
+  role: Role
   iat: number
   exp: number
 }

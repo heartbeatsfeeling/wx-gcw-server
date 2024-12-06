@@ -4,6 +4,7 @@ import { AdminUser } from 'types/db'
 import { JwtService } from '@nestjs/jwt'
 import { AuthService } from 'src/auth/auth.service'
 import { ResultSetHeader } from 'mysql2'
+import { Permission, Role } from 'src/enums'
 @Injectable()
 export class AdminService {
   constructor (
@@ -27,30 +28,86 @@ export class AdminService {
     return (await this.databaseService.query<AdminUser[]>(sql, [email])).length === 0
   }
 
-  async findAdminUsers (email?: string): Promise<AdminUser[]> {
+  async findAdminUsers (): Promise<AdminUser[]> {
     const sql = `
         SELECT
           admin_users.id,
           admin_users.email,
           UNIX_TIMESTAMP(admin_users.create_time) * 1000 as createTime,
           UNIX_TIMESTAMP(admin_users.updated_time) * 1000 as updatedTime,
-          GROUP_CONCAT(admin_users_roles.admin_user_id) as roles
+          GROUP_CONCAT(roles.name) as roles
         FROM
           admin_users
         LEFT JOIN
           admin_users_roles
         ON
           admin_users.id = admin_users_roles.admin_user_id
-        WHERE
-          admin_users.id = COALESCE(?, admin_users.id)
+        LEFT JOIN
+          roles
+        ON
+          roles.id = admin_users_roles.role_id
         GROUP BY
           admin_users.id
       `
-    return this.databaseService.query<AdminUser[]>(sql, [email ?? null])
+    const users = await this.databaseService.query<(Omit<AdminUser, 'roles'> & { roles?: string })[]>(sql)
+    return users.map(user => ({
+      ...user,
+      roles: user.roles ? user.roles.split(',') as Role[] : [Role.user]
+    }))
+  }
+
+  async findOneUser (id: number): Promise<(Omit<AdminUser, 'roles'> & { permissions: Permission[] })[]> {
+    const sql = `
+      SELECT
+        admin_users.email AS email,
+        admin_users.id AS userId,
+        UNIX_TIMESTAMP(admin_users.create_time) * 1000 as createTime,
+        UNIX_TIMESTAMP(admin_users.updated_time) * 1000 as updatedTime,
+        GROUP_CONCAT(DISTINCT permissions.name) AS permissions
+      FROM
+        admin_users
+      LEFT JOIN
+        admin_users_roles ON admin_users.id = admin_users_roles.admin_user_id
+      LEFT JOIN
+        roles ON roles.id = admin_users_roles.role_id
+      LEFT JOIN
+        roles_permissions ON roles.id = roles_permissions.role_id
+      LEFT JOIN
+        permissions ON roles_permissions.permission_id = permissions.id
+      WHERE
+        admin_users.id = ?
+      GROUP BY
+        admin_users.id
+    `
+    const users = await this.databaseService.query<(Omit<AdminUser, 'roles'> & { permissions?: string })[]>(sql, [id])
+    return users.map(user => ({
+      ...user,
+      permissions: user.permissions ? user.permissions.split(',') as Permission[] : [Permission.view]
+    }))
   }
 
   async adminLogin (email: string, plainPassword: string) {
-    const user = (await this.databaseService.query<(AdminUser & { password: string })[]>('SELECT * FROM `admin_users` WHERE email = ?', [email]))[0]
+    const sql = `
+      SELECT
+        admin_users.id AS id,
+        admin_users.password AS password,
+        GROUP_CONCAT(DISTINCT permissions.name) AS permissions
+      FROM
+        admin_users
+      LEFT JOIN
+        admin_users_roles ON admin_users.id = admin_users_roles.admin_user_id
+      LEFT JOIN
+        roles ON roles.id = admin_users_roles.role_id
+      LEFT JOIN
+        roles_permissions ON roles.id = roles_permissions.role_id
+      LEFT JOIN
+        permissions ON roles_permissions.permission_id = permissions.id
+      WHERE
+        admin_users.email = ?
+      GROUP BY
+        admin_users.id
+    `
+    const user = (await this.databaseService.query<{id: number, permissions?: string, password: string}[]>(sql, [email]))[0]
     if (!user) {
       return {
         status: false,
@@ -64,7 +121,7 @@ export class AdminService {
         message: '密码不正确'
       }
     }
-    const payload = { email: user.email, userId: user.id, createTime: user.createTime, updatedTime: user.updatedTime }
+    const payload = { userId: user.id, permissions: user.permissions ? user.permissions.split(',') : [Permission.view] }
     return {
       status: true,
       access_token: await this.jwtService.signAsync(payload)
@@ -105,7 +162,7 @@ export class AdminService {
           SET
             updated_time = CURRENT_TIMESTAMP
           WHERE
-            email = ?
+            id = ?
         `,
         [body.id]
       )

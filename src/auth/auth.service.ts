@@ -39,9 +39,7 @@ export class AuthService {
     const payload = await this.jwtVerify<AdminUserPayLoad>(token)
     if (payload) {
       return {
-        createTime: payload.createTime,
-        updatedTime: payload.updatedTime,
-        email: payload.email,
+        role: payload.role,
         userId: payload.userId
       }
     } else {

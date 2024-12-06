@@ -51,12 +51,12 @@ export class RestPasswrodDto {
 }
 
 export class UpdateRolesDto {
-    @IsString()
+    @IsNumber()
     @IsNotEmpty()
     id: number
 
     @IsOptional()
     @IsArray()
     @IsNumber(undefined, { each: true })
-    roles?: number[]
+    roles: number[]
 }

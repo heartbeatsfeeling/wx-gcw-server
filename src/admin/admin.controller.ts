@@ -1,7 +1,7 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Param, ParseIntPipe, Post, Query, Req, Res } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Query, Req, Res } from '@nestjs/common'
 import { AuthService } from 'src/auth/auth.service'
 import { Public } from 'src/common/decorators/public.decorator'
-import { AdminLoginDto, RegisterDto, RestPasswrodDto } from 'src/common/dto/admin.dto'
+import { AdminLoginDto, RegisterDto, RestPasswrodDto, UpdateRolesDto } from 'src/common/dto/admin.dto'
 import { CustomRequest } from 'types/request'
 import { Response } from 'express'
 import { AdminService } from './admin.service'
@@ -67,9 +67,12 @@ export class AdminController {
     try {
       const payload = await this.authService.getAdminJWTPayload(request.cookies.token)
       if (payload) {
-        return {
-          user: payload,
-          ...data
+        const user = (await this.adminService.findOneUser(payload.userId))[0]
+        if (user) {
+          return {
+            user,
+            ...data
+          }
         }
       }
     } catch {
@@ -114,16 +117,15 @@ export class AdminController {
   }
 
   /**
-   * 用户注册接口 admin/register
+   * 修改admin role
    */
   @Public()
-  @Post('update-roles/:id')
+  @Post('update-roles')
   @HttpCode(200)
   async updateRoles (
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: RegisterDto
+    @Body() body: UpdateRolesDto
   ) {
-    return this.adminService.updateRoles({ id, roles: body.roles })
+    return this.adminService.updateRoles(body)
   }
 
   /**

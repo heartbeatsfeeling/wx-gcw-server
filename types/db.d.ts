@@ -1,4 +1,4 @@
-import { VideoType } from 'src/enums'
+import { Role as RoleType, VideoType } from 'src/enums'
 
 export interface User {
   id: number
@@ -30,6 +30,7 @@ export interface AdminUser {
   email: string
   createTime: number
   updatedTime: number
+  roles?: RoleType[]
 }
 
 export interface Like {
