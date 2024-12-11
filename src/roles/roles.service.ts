@@ -1,12 +1,15 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { ResultSetHeader } from 'mysql2'
+import { roleKey } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
+import { RedisService } from 'src/redis/redis.service'
 import { Role } from 'types/db'
 
 @Injectable()
 export class RolesService {
   constructor (
-    private databaseService: DatabaseService
+    private databaseService: DatabaseService,
+    private redisService: RedisService
   ) {}
 
   async findRoles (id?: number) {
@@ -61,6 +64,26 @@ export class RolesService {
           )
         }
         await connection.commit()
+        this.databaseService.query<{ name: string, permissions?: string }[]>(
+          `
+            SELECT
+              roles.name as name,
+              GROUP_CONCAT(DISTINCT permissions.name) AS permissions
+            FROM
+              roles
+            LEFT JOIN roles_permissions ON roles.id = roles_permissions.role_id
+            LEFT JOIN permissions ON roles_permissions.permission_id = permissions.id
+            WHERE roles.id = ?
+            GROUP BY
+              roles.id
+          `,
+          [body.id]
+        ).then(res => {
+          const role = res[0]
+          if (role) {
+            this.redisService.set(`${roleKey}:${role.name}`, JSON.stringify(role.permissions?.split(',') || []))
+          }
+        })
         return true
       } else {
         throw new HttpException('数据不存在', HttpStatus.BAD_GATEWAY)

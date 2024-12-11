@@ -2,7 +2,7 @@ import { Role } from 'src/enums'
 
 export interface AdminUserPayLoad {
   userId: number
-  role: Role
+  roles: Role
   iat: number
   exp: number
 }

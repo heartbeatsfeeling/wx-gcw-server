@@ -5,12 +5,17 @@ import { JwtService } from '@nestjs/jwt'
 import { AuthService } from 'src/auth/auth.service'
 import { ResultSetHeader } from 'mysql2'
 import { Permission, Role } from 'src/enums'
+import { RedisService } from 'src/redis/redis.service'
+import { jwtConfig, sessionKey } from 'src/common/config'
+import { Response } from 'express'
+import { CustomRequest } from 'types/request'
 @Injectable()
 export class AdminService {
   constructor (
     private readonly databaseService: DatabaseService,
     private readonly jwtService: JwtService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private redisService : RedisService
   ) {}
 
   /**
@@ -52,7 +57,7 @@ export class AdminService {
     const users = await this.databaseService.query<(Omit<AdminUser, 'roles'> & { roles?: string })[]>(sql)
     return users.map(user => ({
       ...user,
-      roles: user.roles ? user.roles.split(',') as Role[] : [Role.user]
+      roles: user.roles ? user.roles.split(',') as Role[] : []
     }))
   }
 
@@ -91,23 +96,19 @@ export class AdminService {
       SELECT
         admin_users.id AS id,
         admin_users.password AS password,
-        GROUP_CONCAT(DISTINCT permissions.name) AS permissions
+        GROUP_CONCAT(DISTINCT roles.name) AS roles
       FROM
         admin_users
       LEFT JOIN
         admin_users_roles ON admin_users.id = admin_users_roles.admin_user_id
       LEFT JOIN
         roles ON roles.id = admin_users_roles.role_id
-      LEFT JOIN
-        roles_permissions ON roles.id = roles_permissions.role_id
-      LEFT JOIN
-        permissions ON roles_permissions.permission_id = permissions.id
       WHERE
         admin_users.email = ?
       GROUP BY
         admin_users.id
     `
-    const user = (await this.databaseService.query<{id: number, permissions?: string, password: string}[]>(sql, [email]))[0]
+    const user = (await this.databaseService.query<{id: number, roles?: string, password: string}[]>(sql, [email]))[0]
     if (!user) {
       return {
         status: false,
@@ -121,10 +122,28 @@ export class AdminService {
         message: '密码不正确'
       }
     }
-    const payload = { userId: user.id, permissions: user.permissions ? user.permissions.split(',') : [Permission.view] }
+    const payload = { userId: user.id }
+    const token = await this.jwtService.signAsync(payload)
+    // Token 与 Redis 强绑定
+    await this.redisService.set(
+      `${sessionKey}:${token}`,
+      JSON.stringify({
+        userId: payload.userId,
+        roles: user.roles ? user.roles.split(',') : []
+      }),
+      jwtConfig.expiresIn * 60
+    )
     return {
       status: true,
-      access_token: await this.jwtService.signAsync(payload)
+      access_token: token
+    }
+  }
+
+  async adminLogout (request: CustomRequest, response: Response) {
+    const token = request.cookies.token
+    response.clearCookie('token')
+    if (token) {
+      await this.redisService.del(`${sessionKey}:${token}`)
     }
   }
 

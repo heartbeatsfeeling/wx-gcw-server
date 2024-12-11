@@ -11,7 +11,10 @@ export const redisConfig = {
 }
 export const jwtConfig = {
   secret: process.env.SECRET,
-  expiresIn: `${process.env.JWT_EXPIRES}m`
+  /**
+   * 过期时间 单位为分钟
+   */
+  expiresIn: Number(process.env.JWT_EXPIRES)
 }
 
 /**
@@ -46,4 +49,14 @@ export const dateFormat = {
   format: process.env.DATE_FORMAT
 }
 
+/**
+ * 是否支持注册功能
+ */
 export const supportRegister = process.env.SUPPORT_REGISTER === 'true'
+
+/**
+ * Token 与 Redis 强绑定key
+ */
+export const sessionKey = 'session'
+
+export const roleKey = 'role'

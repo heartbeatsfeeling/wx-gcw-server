@@ -18,7 +18,7 @@ import { UserLoginLogsModule } from 'src/user-login-logs/user-login-logs.module'
     JwtModule.register({
       global: true,
       secret: jwtConfig.secret,
-      signOptions: { expiresIn: jwtConfig.expiresIn }
+      signOptions: { expiresIn: `${jwtConfig.expiresIn}m` }
     })],
   providers: [AuthService],
   exports: [AuthService],

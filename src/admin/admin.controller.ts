@@ -8,7 +8,7 @@ import { AdminService } from './admin.service'
 import { CaptchaService } from 'src/captcha/captcha.service'
 import { MailService } from 'src/mail/mail.service'
 import { randomUUID } from 'node:crypto'
-import { supportRegister } from 'src/common/config'
+import { jwtConfig, supportRegister } from 'src/common/config'
 
 @Controller('admin')
 export class AdminController {
@@ -32,7 +32,7 @@ export class AdminController {
       const user = await this.adminService.adminLogin(email, password)
       if (user.status) {
         response.cookie('token', user.access_token, {
-          maxAge: 24 * 60 * 60 * 1000
+          maxAge: Number(jwtConfig.expiresIn) * 60 * 1000
         })
         return true
       } else {
@@ -46,9 +46,10 @@ export class AdminController {
   @Get('logout')
   @HttpCode(200)
   async logout (
+    @Req() request: CustomRequest,
     @Res({ passthrough: true }) response: Response
   ) {
-    response.clearCookie('token')
+    await this.adminService.adminLogout(request, response)
     return true
   }
 
