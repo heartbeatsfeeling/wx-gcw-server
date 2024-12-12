@@ -61,8 +61,8 @@ export class AuthService {
   }> {
     const url = 'https://api.weixin.qq.com/sns/jscode2session'
     const params = {
-      appid: 'wx38d5bb2c8e543695',
-      secret: 'd398212a6e1fedba473e8c8c76e84e68',
+      appid: process.env.APPID,
+      secret: process.env.SECRET,
       js_code: code,
       grant_type: 'authorization_code'
     }
