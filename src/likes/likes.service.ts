@@ -12,19 +12,20 @@ export class LikesService {
   async findAll (userId?: number) {
     const sql = `
       SELECT
-        likes.id,
+        videos.id as id,
         likes.user_id as userId,
         likes.video_id as videoId,
         videos.title,
         videos.path,
+        videos.duration,
         videos.cover_image as coverImage,
-        DATE_FORMAT(likes.liked_at, ?) AS createTime
+        DATE_FORMAT(likes.liked_at, ?) AS createTime,
+        COUNT(likes.id) AS likeCount,
+        COUNT(video_play_logs.id) AS viewCount
       FROM
         likes
-      LEFT JOIN
-        videos
-      ON
-        likes.video_id = videos.id
+      LEFT JOIN videos ON likes.video_id = videos.id
+      LEFT JOIN video_play_logs ON video_play_logs.video_id = videos.id
       WHERE
         likes.user_id = ? OR ? IS NULL
       GROUP BY
