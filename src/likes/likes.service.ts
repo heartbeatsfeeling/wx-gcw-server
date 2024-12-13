@@ -20,8 +20,8 @@ export class LikesService {
         videos.duration,
         videos.cover_image as coverImage,
         DATE_FORMAT(likes.liked_at, ?) AS createTime,
-        COUNT(likes.id) AS likeCount,
-        COUNT(video_play_logs.id) AS viewCount
+        COUNT(DISTINCT likes.id) AS likeCount,
+        COUNT(DISTINCT video_play_logs.id) AS viewCount
       FROM
         likes
       LEFT JOIN videos ON likes.video_id = videos.id
