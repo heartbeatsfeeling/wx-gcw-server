@@ -9,7 +9,7 @@
     sudo apt install ffmpeg -y
   ```
 ## 数据库表结构和初始化
-  + [可以查看`sql.init.sql`文件](./sql.init.sql "sql.init.sql")
+  + [可以查看`init.sql`文件](./init.sql "init.sql")
 ## Project setup
 
 ```bash
