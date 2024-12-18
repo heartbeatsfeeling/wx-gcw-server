@@ -12,6 +12,7 @@ export interface Video {
   id: number
   path: string
   title: string
+  hash: string
   description: string
   duration: number
   likedAtTime: string

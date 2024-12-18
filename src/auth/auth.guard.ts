@@ -114,7 +114,6 @@ export class AuthGuard implements CanActivate {
       }
       return true
     } catch (err: any) {
-      console.log(err)
       if (err.status === 403) {
         throw new ForbiddenException(err.message)
       } else {

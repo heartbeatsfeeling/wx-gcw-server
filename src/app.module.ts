@@ -4,6 +4,7 @@ import { AppService } from './app.service'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { UsersModule } from './users/users.module'
 import { ConfigModule } from '@nestjs/config'
+import { ServeStaticModule } from '@nestjs/serve-static'
 import { ResponseFormatInterceptor } from './common/interceptors/response-format.interceptor'
 import { ExceptionInterceptor } from './common/interceptors/exception.interceptor'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
@@ -23,9 +24,14 @@ import { RolesModule } from './roles/roles.module'
 import { PermissionController } from './permission/permission.controller'
 import { PermissionModule } from './permission/permission.module'
 import { PermissionService } from './permission/permission.service'
+import { join } from 'path'
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // 静态文件的路径
+      serveRoot: '/file' // 静态文件的访问路径前缀
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`

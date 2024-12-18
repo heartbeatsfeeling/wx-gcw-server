@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { coverImageFilePath, coverImageStaticPath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
-import { createReadStream, existsSync, unlinkSync } from 'fs'
+import { createReadStream, existsSync, rmSync, unlinkSync } from 'fs'
 import * as crypto from 'crypto'
 import { VideoType } from 'src/enums'
 import ffmpeg from 'fluent-ffmpeg'
@@ -53,7 +53,6 @@ export class VideosService {
         videos.create_time DESC
     `
     const list = await this.databaseService.query<Video[]>(sql, [dateFormat.format, dateFormat.format, type ?? null, type ?? null])
-    console.log(list)
     return list
   }
 
@@ -111,17 +110,32 @@ export class VideosService {
    */
   async addVideo (title: string, description: string, filePath: string, type: VideoType, hash: string) {
     if (title && description && filePath) {
-      const cover = await this.genCoverImage(filePath)
+      const cover = await this.genCoverImage(filePath, hash)
       const meta = await this.genVideoMeta(filePath)
-      if (cover.status && meta.status) {
+      const coverM3u8 = await this.convertToM3U8(filePath, posix.dirname(filePath))
+      if (cover.status && meta.status && coverM3u8.status) {
         const metadata = meta.data!
         const sql = `
           INSERT INTO videos
             (title, description, path, duration, cover_image, type, hash, size, width, height)
-            VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `
-        const res = await this.databaseService.query(sql, [title, description, posix.join(videoStaticPath, basename(filePath)), metadata.duration, cover.data!, type, hash, metadata.size, metadata.width, metadata.height])
+        const res = await this.databaseService.query(
+          sql,
+          [
+            title,
+            description,
+            posix.join(videoStaticPath, hash, basename(coverM3u8.data)),
+            metadata.duration,
+            cover.data!,
+            type,
+            hash,
+            metadata.size,
+            metadata.width,
+            metadata.height
+          ]
+        )
         return res.affectedRows >= 1
       }
     }
@@ -133,12 +147,12 @@ export class VideosService {
     const video = (await this.databaseService.query<Video[]>('SELECT *, cover_image as coverImage FROM `videos` WHERE `id` = ?', [id]))[0]
     if (video) {
       const coverImagePath = join(coverImageFilePath, basename(video.coverImage))
-      const videoPath = join(uploadFilePath, basename(video.path))
+      const videoPath = join(uploadFilePath, video.hash)
       if (existsSync(coverImagePath)) {
         unlinkSync(coverImagePath)
       }
       if (existsSync(videoPath)) {
-        unlinkSync(videoPath)
+        rmSync(videoPath, { recursive: true, force: true })
       }
       const res = await this.databaseService.query(sql, [id])
       return res.affectedRows >= 1
@@ -171,9 +185,9 @@ export class VideosService {
   /**
    * 生成视频第一帧图片
    */
-  genCoverImage (videoPath: string): Promise<{ status: boolean, data?: string }> {
+  genCoverImage (videoPath: string, hash: string): Promise<{ status: boolean, data?: string }> {
     return new Promise((resolve, reject) => {
-      const filename = `${basename(videoPath).split('.')[0]}.png`
+      const filename = `${hash}.png`
       ffmpeg(videoPath)
         .screenshots({
           timestamps: [0],
@@ -214,6 +228,34 @@ export class VideosService {
           })
         }
       })
+    })
+  }
+
+  convertToM3U8 (input: string, output: string): Promise<{ status: boolean, data: string }> {
+    const outputM3U8 = posix.join(output, 'index.m3u8') // 只指定文件夹路径
+    return new Promise((resolve, reject) => {
+      ffmpeg(input)
+        .outputOptions([
+          '-codec: copy', // 使用原始编码，不重新编码
+          '-start_number 0', // TS 文件编号从 0 开始
+          '-hls_time 20', // 每个 TS 分片的长度为 10 秒
+          '-hls_list_size 0', // M3U8 列表包含所有分片
+          '-f hls' // 格式为 HLS
+        ])
+        .output(outputM3U8)
+        .on('start', (commandLine) => {
+          console.log('FFmpeg 命令: ' + commandLine)
+        })
+        .on('end', () => {
+          resolve({
+            data: outputM3U8,
+            status: true
+          })
+        })
+        .on('error', (err) => {
+          reject(err)
+        })
+        .run()
     })
   }
 }

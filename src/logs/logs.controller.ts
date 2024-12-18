@@ -28,7 +28,6 @@ export class LogsController {
     const openid = await this.authService.token2openid(token)
     if (openid) {
       const user = (await this.databaseService.query<User[]>('SELECT * FROM users WHERE openid = ?', [openid]))[0]
-      console.log(user)
       if (user) {
         return this.logsService.addLog(user.id, id)
       }

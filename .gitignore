@@ -2,7 +2,8 @@
 /dist
 /node_modules
 /build
-
+# static
+/uploads
 # Logs
 *.log
 npm-debug.log*

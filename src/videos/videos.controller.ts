@@ -3,9 +3,9 @@ import { VideosService } from './videos.service'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { uploadFileSize, uploadFilePath } from 'src/common/config'
-import { extname } from 'path'
+import { extname, posix } from 'path'
 import { VideoTypeDtoOptional, VideoUploadDto } from 'src/common/dto/videos.dto'
-import { unlinkSync } from 'fs'
+import { unlinkSync, renameSync, mkdirSync, existsSync } from 'fs'
 import { randomUUID } from 'crypto'
 import { AuthService } from 'src/auth/auth.service'
 import { DatabaseService } from 'src/database/database.service'
@@ -76,7 +76,21 @@ export class VideosController {
       unlinkSync(file.path)
       throw new HttpException('文件已经存在', HttpStatus.OK)
     } else {
-      return await this.videosService.addVideo(title, description, file.path, type, hash)
+      /**
+       * 移动文件，为了以hash为目录名
+       */
+      const dir = posix.join(uploadFilePath, hash)
+      if (!existsSync(dir)) {
+        const newPath = posix.join(dir, 'origin' + extname(file.path))
+        mkdirSync(dir)
+        renameSync(
+          file.path,
+          newPath
+        )
+        return await this.videosService.addVideo(title, description, newPath, type, hash)
+      } else {
+        throw new HttpException('目录已经存在', HttpStatus.BAD_GATEWAY)
+      }
     }
   }
 
