@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { coverImageFilePath, coverImageStaticPath, dateFormat, uploadFilePath, videoStaticPath } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Video } from 'types/db'
@@ -57,7 +57,7 @@ export class VideosService {
   }
 
   /**
-   * 获取video 详细
+   * 获取video详细
    */
   async getVideoDetail (id: number, userId?: number) {
     const sql = `
@@ -90,7 +90,7 @@ export class VideosService {
   }
 
   /**
-   * 查找hash是否存在
+   * 查找文件是否上传过
    */
   async findByHash (hash: string) {
     const sql = `
@@ -110,9 +110,11 @@ export class VideosService {
    */
   async addVideo (title: string, description: string, filePath: string, type: VideoType, hash: string) {
     if (title && description && filePath) {
-      const cover = await this.genCoverImage(filePath, hash)
-      const meta = await this.genVideoMeta(filePath)
-      const coverM3u8 = await this.convertToM3U8(filePath, posix.dirname(filePath))
+      const [cover, meta, coverM3u8] = await Promise.all([
+        this.genCoverImage(filePath, hash),
+        this.genVideoMeta(filePath),
+        await this.convertToM3U8(filePath, posix.dirname(filePath))
+      ])
       if (cover.status && meta.status && coverM3u8.status) {
         const metadata = meta.data!
         const sql = `
@@ -142,20 +144,27 @@ export class VideosService {
     return false
   }
 
-  async deleteVideo (id: number) {
-    const sql = 'DELETE FROM `videos` WHERE `id`= ?'
-    const video = (await this.databaseService.query<Video[]>('SELECT *, cover_image as coverImage FROM `videos` WHERE `id` = ?', [id]))[0]
-    if (video) {
-      const coverImagePath = join(coverImageFilePath, basename(video.coverImage))
-      const videoPath = join(uploadFilePath, video.hash)
-      if (existsSync(coverImagePath)) {
-        unlinkSync(coverImagePath)
+  /**
+   * 删除视频，同时删除相应的文件
+   */
+  async deleteVideo (id: number): Promise<boolean> {
+    try {
+      const sql = 'DELETE FROM `videos` WHERE `id`= ?'
+      const video = (await this.databaseService.query<Video[]>('SELECT *, cover_image as coverImage FROM `videos` WHERE `id` = ?', [id]))[0]
+      if (video) {
+        const coverImagePath = join(coverImageFilePath, basename(video.coverImage))
+        const videoPath = join(uploadFilePath, video.hash)
+        if (existsSync(coverImagePath)) {
+          unlinkSync(coverImagePath)
+        }
+        if (existsSync(videoPath)) {
+          rmSync(videoPath, { recursive: true, force: true })
+        }
+        const res = await this.databaseService.query(sql, [id])
+        return res.affectedRows >= 1
       }
-      if (existsSync(videoPath)) {
-        rmSync(videoPath, { recursive: true, force: true })
-      }
-      const res = await this.databaseService.query(sql, [id])
-      return res.affectedRows >= 1
+    } catch (_) {
+      throw new HttpException('删除video数据失败', HttpStatus.INTERNAL_SERVER_ERROR)
     }
     return false
   }
@@ -167,15 +176,12 @@ export class VideosService {
     return new Promise((resolve, reject) => {
       const hash = crypto.createHash('sha256')
       const stream = createReadStream(filePath)
-
       stream.on('data', (chunk) => {
         hash.update(chunk)
       })
-
       stream.on('end', () => {
         resolve(hash.digest('hex'))
       })
-
       stream.on('error', (err) => {
         reject(err)
       })
@@ -209,6 +215,9 @@ export class VideosService {
     })
   }
 
+  /**
+   * 获取video信息
+   */
   genVideoMeta (filePath: string): Promise<{ status: boolean, data: { duration: number, size: number, width: number, height: number } }> {
     return new Promise((resolve, reject) => {
       ffmpeg.ffprobe(filePath, (err, metadata) => {
@@ -231,6 +240,9 @@ export class VideosService {
     })
   }
 
+  /**
+   * video文件转成m3u8
+   */
   convertToM3U8 (input: string, output: string): Promise<{ status: boolean, data: string }> {
     const outputM3U8 = posix.join(output, 'index.m3u8') // 只指定文件夹路径
     return new Promise((resolve, reject) => {
