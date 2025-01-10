@@ -9,13 +9,17 @@ import { RedisService } from 'src/redis/redis.service'
 import { jwtConfig, sessionKey } from 'src/common/config'
 import { Response } from 'express'
 import { CustomRequest } from 'types/request'
+import { CaptchaService } from 'src/captcha/captcha.service'
+import { MailService } from 'src/mail/mail.service'
 @Injectable()
 export class AdminService {
   constructor (
     private readonly databaseService: DatabaseService,
     private readonly jwtService: JwtService,
     private readonly authService: AuthService,
-    private redisService : RedisService
+    private readonly captchaService: CaptchaService,
+    private readonly mailService: MailService,
+    private readonly redisService : RedisService
   ) {}
 
   /**
@@ -31,6 +35,31 @@ export class AdminService {
         email = ?
     `
     return (await this.databaseService.query<AdminUser[]>(sql, [email])).length === 0
+  }
+
+  /**
+   * 发送验证码到邮箱
+   * @param email {string}
+   * @returns -
+   */
+  async sendEmailCaptcha (email?: string) {
+    if (email && email.includes('@')) {
+      try {
+        const has = await this.redisService.get(`captcha:${email}`)
+        if (has) {
+          return
+        }
+        const res = await this.captchaService.generateCaptcha(email)
+        await this.mailService.sendMail(
+          email,
+          '您的邮件验证码已经发送，有效期为5分钟，请注意查收',
+          `您的邮件验证码：${res.text}，有效期为5分钟。`
+        )
+      } catch (err: any) {
+        throw new HttpException(`发送邮件失败: ${err.message}`, HttpStatus.BAD_GATEWAY)
+      }
+    }
+    throw new HttpException('邮箱格式不正确', HttpStatus.BAD_GATEWAY)
   }
 
   async findAdminUsers (): Promise<AdminUser[]> {

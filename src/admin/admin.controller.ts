@@ -145,22 +145,9 @@ export class AdminController {
   @Public()
   @Get('send-captcha2email')
   async sendCaptcha2Email (
-    @Query('email') email: string
+    @Query('email') email?: string
   ) {
-    if (email.includes('@')) {
-      try {
-        const res = await this.captchaService.generateCaptcha(email)
-        await this.mailService.sendMail(
-          email,
-          '验证码，有效期为5分钟',
-          `找回密码验证码为：${res.text}`
-        )
-        return true
-      } catch (err: any) {
-        throw new HttpException(`发送邮件失败: ${err.message}`, HttpStatus.BAD_GATEWAY)
-      }
-    }
-    throw new HttpException('邮箱格式不正确', HttpStatus.BAD_GATEWAY)
+    return this.adminService.sendEmailCaptcha(email)
   }
 
   /**
