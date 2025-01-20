@@ -10,6 +10,8 @@
     sudo apt install ffmpeg -y
   ```
 ## 数据库表结构和初始化
+  + CREATE DATABASE gcw;
+  + USE gcw;
   + [可以查看`init.sql`文件](./init.sql "init.sql")
 ## Project setup
 
