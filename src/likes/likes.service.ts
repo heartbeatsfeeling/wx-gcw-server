@@ -19,7 +19,7 @@ export class LikesService {
         videos.path,
         videos.duration,
         videos.cover_image as coverImage,
-        DATE_FORMAT(likes.liked_at, ?) AS createTime,
+        UNIX_TIMESTAMP(likes.liked_at) * 1000 AS createTime,
         COUNT(DISTINCT likes.id) AS likeCount,
         COUNT(DISTINCT video_play_logs.id) AS viewCount
       FROM
@@ -30,6 +30,8 @@ export class LikesService {
         likes.user_id = ? OR ? IS NULL
       GROUP BY
         likes.id
+      ORDER BY
+        likes.liked_at DESC
     `
     return this.databaseService.query<Like[]>(sql, [dateFormat.format, userId ?? null, userId ?? null])
   }
