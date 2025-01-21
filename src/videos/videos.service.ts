@@ -37,8 +37,8 @@ export class VideosService {
         videos.height,
         videos.size,
         videos.cover_image as coverImage,
-        DATE_FORMAT(MAX(likes.liked_at), ?) AS likedAtTime,
-        DATE_FORMAT(videos.create_time, ?) AS createTime,
+        UNIX_TIMESTAMP(MAX(likes.liked_at)) * 1000 AS likedAtTime,
+        UNIX_TIMESTAMP(videos.create_time) * 1000 AS createTime,
         COUNT(DISTINCT likes.id) AS likeCount,
         COUNT(DISTINCT video_play_logs.id) AS viewCount
       FROM 
@@ -52,7 +52,7 @@ export class VideosService {
       ORDER BY
         videos.create_time DESC
     `
-    const list = await this.databaseService.query<Video[]>(sql, [dateFormat.format, dateFormat.format, type ?? null, type ?? null])
+    const list = await this.databaseService.query<Video[]>(sql, [type ?? null, type ?? null])
     return list
   }
 

@@ -19,7 +19,7 @@ export class LogsService {
         users.openid as openid,
         videos.id as videoId,
         videos.title as videTitle,
-        DATE_FORMAT(video_play_logs.played_at, ?) as createTime
+        UNIX_TIMESTAMP(video_play_logs.played_at) * 1000 as createTime
       FROM
         video_play_logs
       LEFT JOIN
@@ -32,7 +32,9 @@ export class LogsService {
         video_play_logs.video_id = videos.id
       GROUP BY
         video_play_logs.id
-    `
+      ORDER BY
+        video_play_logs.played_at DESC
+      `
     return this.databaseService.query(sql, [dateFormat.format])
   }
 
