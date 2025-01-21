@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { dateFormat } from 'src/common/config'
 import { DatabaseService } from 'src/database/database.service'
 import { Like } from 'types/db'
 
@@ -33,7 +32,7 @@ export class LikesService {
       ORDER BY
         likes.liked_at DESC
     `
-    return this.databaseService.query<Like[]>(sql, [dateFormat.format, userId ?? null, userId ?? null])
+    return this.databaseService.query<Like[]>(sql, [userId ?? null, userId ?? null])
   }
 
   async like (userId: number, videoId: number) {
