@@ -15,7 +15,7 @@ import { catchError } from 'rxjs/operators'
 export class ExceptionInterceptor implements NestInterceptor {
   private readonly logger = new Logger(ExceptionInterceptor.name)
 
-  intercept (context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept (_: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       catchError((error) => {
         let status = HttpStatus.INTERNAL_SERVER_ERROR
